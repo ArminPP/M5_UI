@@ -180,7 +180,7 @@ void UI_handleScreens(int16_t refresh)
     UI_restartTimerLCD();
   }
 
-  UI_timeoutLCD();
+  UI_timeoutLCD(); // manage timeout for LCD brightness
 
   // refresh values on screen - update with millis()
   if (showScreen == HOME)
