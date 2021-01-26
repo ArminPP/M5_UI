@@ -8,6 +8,8 @@
 
 // global definitions
 #define REFRESH_RATE 1000 // refreshrate 1000 ms
+#define LCD_TIMEOUT 30    // 30 sec
+#define LCD_BRIGHTNESS 100
 
 // screen definitions
 #define SCREEN_WIDTH 320
@@ -68,4 +70,7 @@ void UI_showHome();
 void UI_showGraph();
 void UI_showSetup();
 
+void UI_restartTimerLCD();
+void UI_timeoutLCD();
+void UI_showTimeoutProgressLCD(int progress, int max);
 #endif

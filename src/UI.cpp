@@ -10,7 +10,8 @@ byte showScreen = 0; // Define the variable: default display mode 0=HOME 1=GRAPH
 
 // internal Variables
 unsigned long previousMillis = 0;
-const long interval = 2000;
+unsigned long previousMillis_LCD = 0;
+int8_t timerLCD = 0;
 
 void UI_Draw_Header(const char *Header, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY)
 {
@@ -85,6 +86,69 @@ void UI_showSetup()
   M5.Lcd.print("SETUP ");
   M5.Lcd.println(millis());
 }
+void UI_restartTimerLCD()
+{
+  timerLCD = 0;
+  UI_Draw_Header("M5-SENSOR v1.0", 0, 0, 0, 0, 0); // repaint header, to clear embedded progress bar !!
+  UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
+  M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
+}
+
+void UI_showTimeoutProgressLCD(int progress, int max)
+{
+  int i;
+  if ((progress == 0) || (max == 0))
+    i = 0; // div zero
+  else
+  {
+    i = 100 / max;    // int division (result is int)
+    i = i * progress; // scale progress to 100%
+  }
+  M5.Lcd.progressBar(0, HEADER_HEIGHT - 4, M5.Lcd.width(), 4, i);
+}
+
+void UI_timeoutLCD()
+{
+  // After timeout (e.g. 30 s) display will get dark
+
+  // 1 sec ticker
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis_LCD >= 1000)
+  {
+    previousMillis_LCD = currentMillis;
+    if (timerLCD <= LCD_TIMEOUT) // because of overflow of int_8
+    {
+      timerLCD += 1;
+      UI_showTimeoutProgressLCD(timerLCD, LCD_TIMEOUT);
+    }
+  }
+  // LCD brightnes fade out...
+  // Brightness (0: Off - 255: Full)
+  if (timerLCD == LCD_TIMEOUT - 5)
+  {
+    M5.Lcd.setBrightness(80);
+  }
+  if (timerLCD == LCD_TIMEOUT - 4)
+  {
+    M5.Lcd.setBrightness(70);
+  }
+  if (timerLCD == LCD_TIMEOUT - 3)
+  {
+    M5.Lcd.setBrightness(60);
+  }
+  if (timerLCD == LCD_TIMEOUT - 2)
+  {
+    M5.Lcd.setBrightness(30);
+  }
+  if (timerLCD == LCD_TIMEOUT - 1)
+  {
+    M5.Lcd.setBrightness(20);
+  }
+  if (timerLCD == LCD_TIMEOUT)
+  {
+    M5.Lcd.setBrightness(0);
+  }
+}
 
 void UI_handleScreens(int16_t refresh)
 {
@@ -94,7 +158,8 @@ void UI_handleScreens(int16_t refresh)
     showScreen = HOME;
     UI_Draw_Footer("HOME", "GRAPH", "SETUP", 1, 0, 0);
     M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
-    UI_showHome();  // draw on time values for better user feeling (instead of waiting für 1st refresh delay)
+    UI_showHome();
+    UI_restartTimerLCD(); // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
   }
   else if (M5.BtnB.wasReleased())
   {
@@ -102,7 +167,8 @@ void UI_handleScreens(int16_t refresh)
     showScreen = GRAPH;
     UI_Draw_Footer("HOME", "GRAPH", "SETUP", 0, 1, 0);
     M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
-    UI_showGraph();  // draw on time values for better user feeling (instead of waiting für 1st refresh delay)
+    UI_showGraph();                                                                      // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+    UI_restartTimerLCD();
   }
   else if (M5.BtnC.wasReleased())
   {
@@ -110,10 +176,13 @@ void UI_handleScreens(int16_t refresh)
     showScreen = SETUP;
     UI_Draw_Footer("HOME", "GRAPH", "SETUP", 0, 0, 1);
     M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
-    // UI_showSetup(); // draw on time values for better user feeling (instead of waiting für 1st refresh delay)
+    // UI_showSetup(); // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+    UI_restartTimerLCD();
   }
 
-  // Screen update with millis()
+  UI_timeoutLCD();
+
+  // refresh values on screen - update with millis()
   if (showScreen == HOME)
   {
     unsigned long currentMillis = millis();
