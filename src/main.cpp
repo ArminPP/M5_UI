@@ -1,5 +1,4 @@
-#define Version "M5_UI v1.0"
-
+#define Version "M5_UI v1.1"
 /*
 
 Selbstentwickelte UI für den M5 Stack.
@@ -26,8 +25,8 @@ void setup()
 
   M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
   M5.Lcd.fillScreen(SCREEN_BACKGROUND);
-  UI_Draw_Header("M5-SENSOR v1.0", 0, 0, 0, 0, 0);
-  UI_Draw_Footer("HOME", "GRAPH", "SETUP", 1, 0, 0);
+  UI_Draw_Header(HEADER_TITLE, 0, 0, 0, 0, 0);
+  UI_Draw_Footer(BUTTON_A_CAPTION, BUTTON_B_CAPTION, BUTTON_C_CAPTION, 1, 0, 0);
   UI_showTimeoutProgressLCD(0,LCD_TIMEOUT);
 }
 

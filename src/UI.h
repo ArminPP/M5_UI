@@ -17,6 +17,8 @@
 #define SCREEN_BACKGROUND TFT_LIGHTGREY
 
 // header definitions
+#define HEADER_TITLE "ESP-SENSOR V1.0"
+
 #define HEADER_HEIGHT 40
 #define HEADER_BACKGROUND TFT_DARKGREY
 #define HEADER_TEXT_X 6
@@ -26,6 +28,10 @@
 // footer/button definitions
 #define FOOTER_HEIGHT 30
 #define FOOTER_BACKGROUND TFT_LIGHTGREY
+
+#define BUTTON_A_CAPTION "Home"
+#define BUTTON_B_CAPTION "GRAPH"
+#define BUTTON_C_CAPTION "SETUP"
 
 #define BUTTON_COLOR TFT_DARKGREY
 #define BUTTON_WIDTH 102
