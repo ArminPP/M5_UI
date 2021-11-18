@@ -2,7 +2,7 @@
 #define GRAPH_h
 
 // pragma once prevents the file to be included twice
-#pragma once
+// #pragma once
 
 #include <M5Stack.h>
 

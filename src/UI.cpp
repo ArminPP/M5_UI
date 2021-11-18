@@ -33,7 +33,7 @@ void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3, bool b
   M5.Lcd.fillRoundRect(BUTTON_3_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);
 
   M5.Lcd.setTextSize(2);
-  //M5.Lcd.setFreeFont(FSS9);
+  // M5.Lcd.setFreeFont(FSS9);
   M5.Lcd.setTextColor(BUTTON_TEXT_COLOR, BUTTON_COLOR);
   if (btn1)
   {
@@ -58,6 +58,67 @@ void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3, bool b
   }
 }
 
+// UI_Draw_Footer2(HOME, GRAPH, SETUP, 1, 0, 0);
+//
+void UI_Draw_Footer2(uint8_t TextA, uint8_t TextB, uint8_t TextC, bool btn1, bool btn2, bool btn3)
+{
+  char BtnTextA[15] = {'\0'};
+  switch (TextA)
+  {
+  case HOME:
+    snprintf(BtnTextA, sizeof(BtnTextA), "%s", "HOME");
+    break;
+  case GRAPH:
+    snprintf(BtnTextA, sizeof(BtnTextA), "%s", "GRAPH");
+    break;
+  case SETUP:
+    snprintf(BtnTextA, sizeof(BtnTextA), "%s", "SETUP");
+    break;
+  case SCREEN4:
+    snprintf(BtnTextA, sizeof(BtnTextA), "%s", "SCREEN4");
+    break;
+  case SCREEN5:
+    snprintf(BtnTextA, sizeof(BtnTextA), "%s", "SCREEN5");
+    break;
+  }
+
+  // delete Buttons
+  M5.Lcd.fillRect(0, SCREEN_HEIGHT, SCREEN_WIDTH, FOOTER_HEIGHT, FOOTER_BACKGROUND);
+
+  // paint Buttons
+  M5.Lcd.fillRoundRect(BUTTON_1_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);
+  M5.Lcd.fillRoundRect(BUTTON_2_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);
+  M5.Lcd.fillRoundRect(BUTTON_3_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);
+
+  M5.Lcd.setTextSize(2);
+  // M5.Lcd.setFreeFont(FSS9);
+  M5.Lcd.setTextColor(BUTTON_TEXT_COLOR, BUTTON_COLOR);
+  if (btn1)
+  {
+    M5.Lcd.drawString(Btn1, BUTTON_1_TEXT_X, BUTTON_TEXT_Y);
+    M5.Lcd.setTextColor(BUTTON_TEXT_INACTIVE_COLOR, BUTTON_COLOR);
+    M5.Lcd.drawString(Btn2, BUTTON_2_TEXT_X, BUTTON_TEXT_Y);
+    M5.Lcd.drawString(Btn3, BUTTON_3_TEXT_X, BUTTON_TEXT_Y);
+  }
+  else if (btn2)
+  {
+    M5.Lcd.drawString(Btn2, BUTTON_2_TEXT_X, BUTTON_TEXT_Y);
+    M5.Lcd.setTextColor(BUTTON_TEXT_INACTIVE_COLOR, BUTTON_COLOR);
+    M5.Lcd.drawString(Btn1, BUTTON_1_TEXT_X, BUTTON_TEXT_Y);
+    M5.Lcd.drawString(Btn3, BUTTON_3_TEXT_X, BUTTON_TEXT_Y);
+  }
+  else if (btn3)
+  {
+    M5.Lcd.drawString(Btn3, BUTTON_3_TEXT_X, BUTTON_TEXT_Y);
+    M5.Lcd.setTextColor(BUTTON_TEXT_INACTIVE_COLOR, BUTTON_COLOR);
+    M5.Lcd.drawString(Btn1, BUTTON_1_TEXT_X, BUTTON_TEXT_Y);
+    M5.Lcd.drawString(Btn2, BUTTON_2_TEXT_X, BUTTON_TEXT_Y);
+  }
+}
+
+//  ------------------------------------------------------------------
+//  --------------------------- SCREENS ------------------------------
+//  ------------------------------------------------------------------
 void UI_showHome()
 {
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
@@ -86,6 +147,26 @@ void UI_showSetup()
   M5.Lcd.print("SETUP ");
   M5.Lcd.println(millis());
 }
+
+void UI_showScreen4()
+{
+  M5.Lcd.setCursor(30, 110);
+  M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+  M5.Lcd.setTextSize(3);
+  M5.Lcd.print("Screen 4");
+}
+
+void UI_showScreen5()
+{
+  M5.Lcd.setCursor(30, 110);
+  M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+  M5.Lcd.setTextSize(3);
+  M5.Lcd.print("Screen 5");
+}
+//  ------------------------------------------------------------------
+//  ------------------------------------------------------------------
+//  ------------------------------------------------------------------
+
 void UI_restartTimerLCD()
 {
   timerLCD = 0;
@@ -155,12 +236,23 @@ void UI_handleScreens(int16_t refresh)
   if (M5.BtnA.wasReleased())
   {
     Serial.println("button A");
-    showScreen = HOME;
-    UI_Draw_Footer("HOME", "GRAPH", "SETUP", 1, 0, 0);
+    if (showScreen == 2 || showScreen == 3 || showScreen == 4)
+    {
+      showScreen = SCREEN4;
+      UI_Draw_Footer("< SETUP", "SCREEN4", "SCREEN5 >", 0, 1, 0);
+      UI_showScreen4;
+    }
+    else if (showScreen == 3 || showScreen == 4 || showScreen == 5)
+    {
+      showScreen = SCREEN4;
+      UI_Draw_Footer("< SETUP", "SCREEN4", "SCREEN5 >", 0, 1, 0);
+      UI_showScreen4;
+    }
+
     M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
-    UI_showHome();
-    UI_restartTimerLCD(); // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+    UI_restartTimerLCD();                                                                // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
   }
+
   else if (M5.BtnB.wasReleased())
   {
     Serial.println("button B");
@@ -173,36 +265,99 @@ void UI_handleScreens(int16_t refresh)
   else if (M5.BtnC.wasReleased())
   {
     Serial.println("button C");
-    showScreen = SETUP;
-    UI_Draw_Footer("HOME", "GRAPH", "SETUP", 0, 0, 1);
+
+    if (showScreen <= 3)
+    {
+      showScreen = SETUP;
+      UI_Draw_Footer("< GRAPH", "SETUP", "SCREEN4 >", 0, 1, 0);
+      UI_showSetup(); // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+    }
+    else if (showScreen == 4)
+    {
+      showScreen = SCREEN4;
+      UI_Draw_Footer("< SETUP", "SCREEN4", "SCREEN5 >", 0, 1, 0);
+      UI_showScreen4; // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+    }
+
     M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
-    // UI_showSetup(); // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
     UI_restartTimerLCD();
   }
 
-  UI_timeoutLCD(); // manage timeout for LCD brightness
+  void UI_handleScreens2(int16_t refresh)
+  {
+    if (M5.BtnA.wasReleased())
+    {
+      Serial.println("button A");
+      if (showScreen == 2 || showScreen == 3 || showScreen == 4)
+      {
+        showScreen = SCREEN4;
+        UI_Draw_Footer("< SETUP", "SCREEN4", "SCREEN5 >", 0, 1, 0);
+        UI_showScreen4;
+      }
+      else if (showScreen == 3 || showScreen == 4 || showScreen == 5)
+      {
+        showScreen = SCREEN4;
+        UI_Draw_Footer("< SETUP", "SCREEN4", "SCREEN5 >", 0, 1, 0);
+        UI_showScreen4;
+      }
 
-  // refresh values on screen - update with millis()
-  if (showScreen == HOME)
-  {
-    unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis >= refresh)
+      M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
+      UI_restartTimerLCD();                                                                // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+    }
+
+    else if (M5.BtnB.wasReleased())
     {
-      previousMillis = currentMillis;
-      UI_showHome();
+      Serial.println("button B");
+      showScreen = GRAPH;
+      UI_Draw_Footer("HOME", "GRAPH", "SETUP", 0, 1, 0);
+      M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
+      UI_showGraph();                                                                      // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+      UI_restartTimerLCD();
+    }
+    else if (M5.BtnC.wasReleased())
+    {
+      Serial.println("button C");
+
+      if (showScreen <= 3)
+      {
+        showScreen = SETUP;
+        UI_Draw_Footer("< GRAPH", "SETUP", "SCREEN4 >", 0, 1, 0);
+        UI_showSetup(); // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+      }
+      else if (showScreen == 4)
+      {
+        showScreen = SCREEN4;
+        UI_Draw_Footer("< SETUP", "SCREEN4", "SCREEN5 >", 0, 1, 0);
+        UI_showScreen4; // draw values immedeatly for better user experience (instead of waiting for the 1st refresh delay)
+      }
+
+      M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
+      UI_restartTimerLCD();
+    }
+
+    UI_timeoutLCD(); // manage timeout for LCD brightness
+
+    // refresh values on screen - update with millis()
+    if (showScreen == HOME)
+    {
+      unsigned long currentMillis = millis();
+      if (currentMillis - previousMillis >= refresh)
+      {
+        previousMillis = currentMillis;
+        UI_showHome();
+      }
+    }
+    else if (showScreen == GRAPH)
+    {
+      unsigned long currentMillis = millis();
+      if (currentMillis - previousMillis >= refresh)
+      {
+        previousMillis = currentMillis;
+        UI_showGraph();
+      }
+    }
+    else if (showScreen == SETUP)
+    {
+      UI_showSetup(); // shows screen with no refresh rate ! (updtes with loop() speed!)
     }
   }
-  else if (showScreen == GRAPH)
-  {
-    unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis >= refresh)
-    {
-      previousMillis = currentMillis;
-      UI_showGraph();
-    }
-  }
-  else if (showScreen == SETUP)
-  {
-    UI_showSetup();
-  }
-}

@@ -4,7 +4,7 @@
 #include <M5Stack.h>
 
 // pragma once prevents the file to be included twice
-#pragma once
+// #pragma once
 
 // global definitions
 #define REFRESH_RATE 1000  // screen refreshrate 1000 ms
@@ -29,7 +29,7 @@
 #define FOOTER_HEIGHT 30
 #define FOOTER_BACKGROUND TFT_LIGHTGREY
 
-#define BUTTON_A_CAPTION "Home"
+#define BUTTON_A_CAPTION "HOME"
 #define BUTTON_B_CAPTION "GRAPH"
 #define BUTTON_C_CAPTION "SETUP"
 
@@ -60,11 +60,28 @@
 // global Variables
 extern byte showScreen; // Declare the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
 
+const int noOfScreens = 5;
+const char screenNames[noOfScreens][15] = {
+    {"HOME"},
+    {"GRAPH"},
+    {"SETUP"},
+    {"SCREEN4"},
+    {"SCREEN5"}
+};
+
+    // for (int i = 0; i < ROWS; ++i)
+    // {Serial.print(i);
+    //   Serial.println(screenNames[i]);
+    // }
+
+
 enum Screens
 {
     HOME,
     GRAPH,
-    SETUP
+    SETUP,
+    SCREEN4,
+    SCREEN5
 };
 
 void UI_Draw_Header(const char *Header, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY);
