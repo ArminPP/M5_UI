@@ -29,9 +29,9 @@
 #define FOOTER_HEIGHT 30
 #define FOOTER_BACKGROUND TFT_LIGHTGREY
 
-#define BUTTON_A_CAPTION "HOME"
-#define BUTTON_B_CAPTION "GRAPH"
-#define BUTTON_C_CAPTION "SETUP"
+// #define BUTTON_A_CAPTION "HOME"
+// #define BUTTON_B_CAPTION "GRAPH"
+// #define BUTTON_C_CAPTION "SETUP"
 
 #define BUTTON_COLOR TFT_DARKGREY
 #define BUTTON_WIDTH 102
@@ -58,22 +58,21 @@
 #define CANVAS_BACKGROUND TFT_LIGHTGREY
 
 // global Variables
-extern byte showScreen; // Declare the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
+extern int8_t showScreen; // Declare the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
+// extern int8_t activeScreen;
 
 const int noOfScreens = 5;
-const char screenNames[noOfScreens][15] = {
+const char screenName[noOfScreens][15] = {
     {"HOME"},
     {"GRAPH"},
     {"SETUP"},
     {"SCREEN4"},
-    {"SCREEN5"}
-};
+    {"SCREEN5"}};
 
-    // for (int i = 0; i < ROWS; ++i)
-    // {Serial.print(i);
-    //   Serial.println(screenNames[i]);
-    // }
-
+// for (int i = 0; i < ROWS; ++i)
+// {Serial.print(i);
+//   Serial.println(screenName[i]);
+// }
 
 enum Screens
 {
@@ -85,9 +84,11 @@ enum Screens
 };
 
 void UI_Draw_Header(const char *Header, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY);
-void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3, bool btn1, bool btn2, bool btn3);
+// void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3, bool btn1, bool btn2, bool btn3);
+void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3);
 
 void UI_handleScreens(int16_t refresh);
+void UI_doHandleTFT(int16_t refresh);
 
 void UI_showHome();
 void UI_showGraph();

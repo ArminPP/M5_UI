@@ -23,15 +23,26 @@ void setup()
   M5.Power.begin();
   Serial.begin(115200);
 
+  Serial.println("Press some serial key or M5 Button B to start program"); // DEBUG
+  M5.Lcd.println("Press some serial key or M5 Button B to start program");
+  while (Serial.available() == 0)
+  {
+    M5.update();
+    if (M5.BtnB.wasPressed())
+    { // if M5 Buttons B was pressed, then also start...
+      break;
+    }
+  }
+
   M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
   M5.Lcd.fillScreen(SCREEN_BACKGROUND);
   UI_Draw_Header(HEADER_TITLE, 0, 0, 0, 0, 0);
-  UI_Draw_Footer(BUTTON_A_CAPTION, BUTTON_B_CAPTION, BUTTON_C_CAPTION, 1, 0, 0);
-  UI_showTimeoutProgressLCD(0,LCD_TIMEOUT);
+  UI_Draw_Footer("", screenName[showScreen], ">");
+  UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
 }
 
 void loop()
 {
   M5.update();
-  UI_handleScreens(REFRESH_RATE);
+  UI_doHandleTFT(REFRESH_RATE);
 }
