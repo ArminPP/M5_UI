@@ -3,11 +3,8 @@
 
 #include <M5Stack.h>
 
-// pragma once prevents the file to be included twice
-// #pragma once
-
 // global definitions
-#define REFRESH_RATE 1000  // screen refreshrate 1000 ms
+#define REFRESH_RATE 3000  // screen refreshrate 1000 ms
 #define LCD_TIMEOUT 30     // 30 sec
 #define LCD_BRIGHTNESS 100 // 0 .. 255
 
@@ -29,10 +26,6 @@
 #define FOOTER_HEIGHT 30
 #define FOOTER_BACKGROUND TFT_LIGHTGREY
 
-// #define BUTTON_A_CAPTION "HOME"
-// #define BUTTON_B_CAPTION "GRAPH"
-// #define BUTTON_C_CAPTION "SETUP"
-
 #define BUTTON_COLOR TFT_DARKGREY
 #define BUTTON_WIDTH 102
 #define BUTTON_HEIGHT 30
@@ -45,10 +38,10 @@
 #define BUTTON_TEXT_INACTIVE_COLOR TFT_LIGHTGREY
 #define BUTTON_TEXT_Y BUTTON_Y + 9
 #define BUTTON_1_TEXT_X BUTTON_1_X + 28
-#define BUTTON_2_TEXT_X BUTTON_2_X + 22
-#define BUTTON_3_TEXT_X BUTTON_3_X + 22
+#define BUTTON_2_TEXT_X BUTTON_2_X + 28
+#define BUTTON_3_TEXT_X BUTTON_3_X + 28
 
-// cnavas definitions
+// canvas definitions
 #define CANVAS_X 5
 #define CANVAS_Y FOOTER_HEIGHT + 15
 #define CANVAS_WIDTH SCREEN_WIDTH - 10
@@ -59,7 +52,6 @@
 
 // global Variables
 extern int8_t showScreen; // Declare the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
-// extern int8_t activeScreen;
 
 const int noOfScreens = 5;
 const char screenName[noOfScreens][15] = {
@@ -83,19 +75,21 @@ enum Screens
     SCREEN5
 };
 
-void UI_Draw_Header(const char *Header, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY);
+void UI_Draw_Header(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY);
 // void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3, bool btn1, bool btn2, bool btn3);
 void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3);
-
-void UI_handleScreens(int16_t refresh);
+void UI_drawMenue(int8_t activeItem);
+// void UI_handleScreens(int16_t refresh);
 void UI_doHandleTFT(int16_t refresh);
 
-void UI_showHome();
-void UI_showGraph();
-void UI_showSetup();
+void UI_showActiveScreen(uint8_t screen);
 
-void UI_restartTimerLCD();
-void UI_timeoutLCD();
+// void UI_showHome();
+// void UI_showGraph();
+// void UI_showSetup();
+
+// void UI_restartTimerLCD();
+// void UI_timeoutLCD();
 void UI_showTimeoutProgressLCD(int progress, int max);
 
 #endif
