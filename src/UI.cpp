@@ -11,7 +11,14 @@ int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=GRA
 // internal Variables
 uint8_t timerLCD = 0;
 
-void UI_Draw_Header(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY)
+void UI_deleteCanvas()
+{
+  M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // x0,y0 are at top left
+  // M5.Lcd.drawRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_FRAME_COLOR);
+  M5.Lcd.drawRoundRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, 6, CANVAS_FRAME_COLOR);
+}
+
+void UI_drawHeader(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY)
 {
   M5.Lcd.fillRect(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, HEADER_BACKGROUND);
 
@@ -20,8 +27,8 @@ void UI_Draw_Header(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK,
   M5.Lcd.drawString(Title, HEADER_TEXT_X, HEADER_TEXT_Y);
 }
 
-// void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3, bool btn1, bool btn2, bool btn3)
-void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3)
+// void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3, bool btn1, bool btn2, bool btn3)
+void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3)
 {
   M5.Lcd.setTextSize(2);
   // M5.Lcd.setFreeFont(FSS9);
@@ -35,7 +42,7 @@ void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3)
   }
   else
   {
-    //delete Button
+    // delete Button
     M5.Lcd.fillRoundRect(BUTTON_1_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, FOOTER_BACKGROUND);
   }
   if (strlen(Btn2) > 0)
@@ -45,7 +52,7 @@ void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3)
   }
   else
   {
-    //delete Button
+    // delete Button
     M5.Lcd.fillRoundRect(BUTTON_2_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, FOOTER_BACKGROUND);
   }
   if (strlen(Btn3) > 0)
@@ -55,26 +62,28 @@ void UI_Draw_Footer(const char *Btn1, const char *Btn2, const char *Btn3)
   }
   else
   {
-    //delete Button
+    // delete Button
     M5.Lcd.fillRoundRect(BUTTON_3_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, FOOTER_BACKGROUND);
   }
 }
 
 void UI_drawMenue(int8_t activeItem)
 {
-  int16_t space = (TFT_HEIGHT / noOfScreens)-20;
+  M5.Lcd.setTextSize(1);
+  int16_t space = (TFT_HEIGHT / noOfScreens); //- 5
   for (int i = 0; i < noOfScreens; ++i)
   {
-
     if (i == activeItem)
-    {
-      M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT + 30, 120, 30, 6, BUTTON_COLOR);
-      M5.Lcd.drawString(screenName[showScreen], i * space + 2, HEADER_HEIGHT);
+    { // 120
+      M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT + 5, 0, MENU_COLOR);
+      M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_COLOR); // if text changes (eg. temperature value) explicit add canvas color as background color
+      M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
     else
     {
-      M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT + 30, 120, 30, 6, M5.Lcd.color565(64, 64, 64));
-      M5.Lcd.drawString(screenName[showScreen], i * space + 2, HEADER_HEIGHT);
+      M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT, 0, MENU_INACTIVE_COLOR);
+      M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_INACTIVE_COLOR); // if text changes (eg. temperature value) explicit add canvas color as background color
+      M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
   }
 }
@@ -87,10 +96,10 @@ void UI_showHome()
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
   M5.Lcd.setTextSize(2);
   // M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_BACKGROUND);
-  M5.Lcd.drawString("Temperature 1: " + String((millis() % 128) * 0.1) + " C  ", 10, 50);
-  M5.Lcd.drawString("Temperature 2: " + String((millis() % 118) * 0.1) + " C  ", 10, 70);
-  M5.Lcd.drawString("Temperature 3: " + String((millis() % 108) * 0.1) + " C  ", 10, 90);
-  M5.Lcd.drawString("Humidity:      " + String((millis() % 102)) + " %   ", 10, 120);
+  M5.Lcd.drawString("Temperature 1: " + String((millis() % 128) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 10);
+  M5.Lcd.drawString("Temperature 2: " + String((millis() % 118) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 30);
+  M5.Lcd.drawString("Temperature 3: " + String((millis() % 108) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 50);
+  M5.Lcd.drawString("Humidity:      " + String((millis() % 102)) + " %   ", 10, HEADER_HEIGHT + 30 + 70);
 }
 
 void UI_showGraph()
@@ -133,7 +142,7 @@ void UI_showScreen5()
 void UI_restartTimerLCD()
 {
   timerLCD = 0;
-  UI_Draw_Header(HEADER_TITLE, 0, 0, 0, 0, 0); // repaint header, to clear embedded progress bar !!
+  UI_drawHeader(HEADER_TITLE, 0, 0, 0, 0, 0); // repaint header, to clear embedded progress bar !!
   UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
   M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
 }
@@ -235,16 +244,16 @@ void UI_doHandleTFT(int16_t refresh)
     if (showScreen <= 0)
     {
       showScreen = 0;
-      UI_Draw_Footer("", "", ">");
+      UI_drawFooter("", "", ">");
       UI_drawMenue(showScreen);
     }
     else
     {
-      UI_Draw_Footer("<", "", ">");
+      UI_drawFooter("<", "", ">");
       UI_drawMenue(showScreen);
     }
-    M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
-    UI_showActiveScreen(showScreen);                                                     // show screen immedeatly
+    UI_deleteCanvas();               // delete Canvas
+    UI_showActiveScreen(showScreen); // show screen immedeatly
     UI_restartTimerLCD();
   }
   else if (M5.BtnB.wasReleased())
@@ -258,17 +267,17 @@ void UI_doHandleTFT(int16_t refresh)
     if (showScreen >= noOfScreens - 1)
     {
       showScreen = noOfScreens - 1; // eg. 0..4 == 5-1
-      UI_Draw_Footer("<", "", "");
+      UI_drawFooter("<", "", "");
       UI_drawMenue(showScreen);
     }
     else
     {
-      UI_Draw_Footer("<", "", ">");
+      UI_drawFooter("<", "", ">");
       UI_drawMenue(showScreen);
     }
 
-    M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH-30, CANVAS_HEIGHT, CANVAS_BACKGROUND); //NEW delete Canvas
-    UI_showActiveScreen(showScreen);                                                     // show screen immedeatly
+    UI_deleteCanvas();               // NEW delete Canvas
+    UI_showActiveScreen(showScreen); // show screen immedeatly
     UI_restartTimerLCD();
   }
 

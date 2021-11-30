@@ -36,10 +36,10 @@ void setup()
 
   M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
   M5.Lcd.fillScreen(SCREEN_BACKGROUND);
-  UI_Draw_Header(HEADER_TITLE, 0, 0, 0, 0, 0);
-  UI_Draw_Footer("", "", ">");
+  UI_drawHeader(HEADER_TITLE, 0, 0, 0, 0, 0);
+  UI_drawFooter("", "", ">");
+  UI_deleteCanvas();
   UI_drawMenue(showScreen);
-  M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // delete Canvas
   UI_showActiveScreen(showScreen);
   UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
 }
