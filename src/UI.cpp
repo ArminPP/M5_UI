@@ -81,7 +81,7 @@ void UI_drawMenue(int8_t activeItem)
     }
     else
     {
-      M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT, 0, MENU_INACTIVE_COLOR);l
+      M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT, 0, MENU_INACTIVE_COLOR);
       M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_INACTIVE_COLOR); // if text changes (eg. temperature value) explicit add canvas color as background color
       M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
