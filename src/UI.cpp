@@ -9,7 +9,41 @@
 int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
 
 // internal Variables
-uint8_t timerLCD = 0;
+int16_t timerLCD = 0;
+
+void showWifiStrength()
+https://diyprojects.io/ttgo-t-watch-menu-pages-navigation-between-screens-tft_espi/#.Yad1cdDMKM8
+https://github.com/projetsdiy/T-Watch-Projects/tree/main/8_T-Watch_TFT_eSPI_menu/ico
+https://github.com/projetsdiy/T-Watch-Projects/blob/main/8_T-Watch_TFT_eSPI_menu/icones.h
+
+{
+  int WifiRSSI = (millis() % 102) * -1; // WiFi.Rssi()
+
+  M5.Lcd.fillRect(40, 0, 68, 15, TFT_BLACK);
+  M5.Lcd.setCursor(40, 14);
+  M5.Lcd.print(String(WifiRSSI) + "dBm");
+  if (WifiRSSI > -50 & !WifiRSSI == 0)
+    M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_WHITE);
+  else
+    M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_DARKGREY);
+  if (WifiRSSI > -70 & !WifiRSSI == 0)
+    M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_WHITE);
+  else
+    M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_DARKGREY);
+  if (WifiRSSI > -80 & !WifiRSSI == 0)
+    M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_WHITE);
+  else
+    M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_DARKGREY);
+  if (WifiRSSI > -90 & !WifiRSSI == 0)
+    M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_WHITE);
+  else
+    M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_RED);
+}
+
+void UI_progressBar(int x, int y, int w, int h, uint8_t val100pcnt, uint32_t color)
+{
+  M5.Lcd.fillRect(x, y, w * (((float)val100pcnt) / 100.0), h, color); // w * (((float)val100pcnt) / 100.0) = scale 100% to screenwidth px
+}
 
 void UI_deleteCanvas()
 {
@@ -77,15 +111,16 @@ void UI_drawMenue(int8_t activeItem)
     {
       M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT + 5, 0, MENU_COLOR); // draw active item +5px at bottom
       M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_COLOR);                                        // if text changes (eg. temperature value) explicit add canvas color as background color
-      M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
+      // M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
     else
     {
-      M5.Lcd.fillRect((i * space), HEADER_HEIGHT + MENU_HEIGHT, space, 5, CANVAS_BACKGROUND);     // delete space below from menue item
+      M5.Lcd.fillRect((i * space), HEADER_HEIGHT + MENU_HEIGHT, space, 5, CANVAS_BACKGROUND);       // delete space below from menue item
       M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT, 0, MENU_INACTIVE_COLOR); // draw inactive item
       M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_INACTIVE_COLOR);                                    // if text changes (eg. temperature value) explicit add canvas color as background color
-      M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
+      // M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
+    M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
   }
 }
 
@@ -96,7 +131,8 @@ void UI_showHome()
 {
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
   M5.Lcd.setTextSize(2);
-  // M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_BACKGROUND);
+
+  // use global json ProbeData for visualisation
   M5.Lcd.drawString("Temperature 1: " + String((millis() % 128) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 10);
   M5.Lcd.drawString("Temperature 2: " + String((millis() % 118) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 30);
   M5.Lcd.drawString("Temperature 3: " + String((millis() % 108) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 50);
@@ -140,6 +176,21 @@ void UI_showScreen5()
 //  ------------------------------------------------------------------
 //  ------------------------------------------------------------------
 
+void UI_showTimeoutProgressLCD(int16_t progress, int16_t max)
+{
+  uint8_t i;
+  if ((progress == 0) || (max == 0))
+  {
+    i = 0; // div zero
+  }
+  else
+  {
+    i = progress * 100 / max; // scale progress to 100% as int division (result is int)
+  }
+  // Serial.printf("\n i=%i progress=%i calcF=%f,calcI=%i", i, progress, i * (100.0 / ((float)max)), i * (100.0 / ((float)max)));
+  UI_progressBar(0, HEADER_HEIGHT - 4, SCREEN_WIDTH, 4, i, TFT_MAROON);
+}
+
 void UI_restartTimerLCD()
 {
   timerLCD = 0;
@@ -148,29 +199,11 @@ void UI_restartTimerLCD()
   M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
 }
 
-void UI_showTimeoutProgressLCD(int progress, int max)
-{
-  int i;
-  if ((progress == 0) || (max == 0))
-    i = 0; // div zero
-  else
-  {
-    i = 100 / max;    // int division (result is int)
-    i = i * progress; // scale progress to 100%
-  }
-  M5.Lcd.progressBar(0, HEADER_HEIGHT - 4, M5.Lcd.width(), 4, i);
-
-  // void M5Display::progressBar(int x, int y, int w, int h, uint8_t val) {
-  //  // drawRect(x, y, w, h, 0x09F1);   // FIX: <------------------------          remove rectangle!
-  //   fillRect(x + 1, y + 1, w * (((float)val) / 100.0), h - 1, 0x09F1);
-  // }
-}
-
 void UI_timeoutLCD()
 {
   // After timeout (e.g. 30 s) display will get dark
-  //
   // update screen every 'refresh' ms
+  //
   static unsigned long timeoutPM = 0;
   unsigned long timeoutCM = millis();
   if (timeoutCM - timeoutPM >= 1000)
@@ -183,25 +216,31 @@ void UI_timeoutLCD()
       UI_showTimeoutProgressLCD(timerLCD, LCD_TIMEOUT);
     }
 
+    void showWifiStrength(); // DEBUG                                                                                                   .
+
     // LCD brightnes fade out...
     // Brightness (0: Off - 255: Full)
-    if (timerLCD == LCD_TIMEOUT - 5)
+    if (timerLCD == LCD_TIMEOUT / 2) // at half timeout set brightness to 50%
+    {
+      M5.Lcd.setBrightness(LCD_BRIGHTNESS / 2);
+    }
+    if (timerLCD == LCD_TIMEOUT * 80 / 100) // at 80% start to fade out
     {
       M5.Lcd.setBrightness(80);
     }
-    if (timerLCD == LCD_TIMEOUT - 4)
+    if (timerLCD == LCD_TIMEOUT * 85 / 100)
     {
       M5.Lcd.setBrightness(70);
     }
-    if (timerLCD == LCD_TIMEOUT - 3)
+    if (timerLCD == LCD_TIMEOUT * 90 / 100)
     {
       M5.Lcd.setBrightness(60);
     }
-    if (timerLCD == LCD_TIMEOUT - 2)
+    if (timerLCD == LCD_TIMEOUT * 95 / 100)
     {
       M5.Lcd.setBrightness(30);
     }
-    if (timerLCD == LCD_TIMEOUT - 1)
+    if (timerLCD == LCD_TIMEOUT * 97 / 100)
     {
       M5.Lcd.setBrightness(20);
     }
@@ -239,7 +278,8 @@ void UI_showActiveScreen(uint8_t screen)
 
 void UI_doHandleTFT(int16_t refresh)
 {
-  if (M5.BtnA.wasReleased())
+  M5.update();
+  if (M5.BtnA.wasReleased() || refresh == 0) // refresh = 0 means 1st start with default screen
   {
     showScreen--;
     if (showScreen <= 0)
@@ -292,4 +332,11 @@ void UI_doHandleTFT(int16_t refresh)
     refreshLcdPM = refreshLcdCM;
     UI_showActiveScreen(showScreen);
   }
+}
+
+void UI_setupTFT()
+{
+  M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
+  M5.Lcd.fillScreen(SCREEN_BACKGROUND); // set default background color
+  UI_doHandleTFT(0);                    // start with default screen
 }

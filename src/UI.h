@@ -4,9 +4,9 @@
 #include <M5Stack.h>
 
 // global definitions
-#define REFRESH_RATE 3000  // screen refreshrate 1000 ms
-#define LCD_TIMEOUT 30     // 30 sec
-#define LCD_BRIGHTNESS 100 // 0 .. 255
+#define REFRESH_RATE 3000  // screen refreshrate in ms
+#define LCD_TIMEOUT 130    // 30 sec
+#define LCD_BRIGHTNESS 250 // 0 .. 255  -->  default value, after timeout it is zero!
 
 // https://www.barth-dev.de/online/rgb565-color-picker/
 #define TFT_GRAY 0x8410
@@ -35,10 +35,11 @@
 #define MENU_COLOR TFT_DARKGREY
 #define MENU_INACTIVE_COLOR 0x9CF3
 
-// footer/button definitions
+// footer definitions
 #define FOOTER_HEIGHT 30
 #define FOOTER_BACKGROUND TFT_LIGHTGREY
 
+// button definitions
 #define BUTTON_COLOR TFT_DARKGREY
 #define BUTTON_WIDTH 60
 #define BUTTON_HEIGHT 25
@@ -65,20 +66,15 @@
 #define CANVAS_BACKGROUND 0xBDD7 // TFT_LIGHTGREY
 
 // global Variables
-extern int8_t showScreen; // Declare the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
+extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1=GRAPH 2=SETUP
 
-const int noOfScreens = 5;
+const int noOfScreens = 5; // max 6-7 because of menue text length ...
 const char screenName[noOfScreens][15] = {
     {"HOME"},
     {"GRAPH"},
     {"SETUP"},
     {"SCREEN4"},
     {"SCREEN5"}};
-
-// for (int i = 0; i < ROWS; ++i)
-// {Serial.print(i);
-//   Serial.println(screenName[i]);
-// }
 
 enum Screens
 {
@@ -89,14 +85,7 @@ enum Screens
     SCREEN5
 };
 
-void UI_drawHeader(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY);
-void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3);
-void UI_deleteCanvas();
-void UI_drawMenue(int8_t activeItem);
-void UI_doHandleTFT(int16_t refresh);
-
-void UI_showActiveScreen(uint8_t screen);
-
-void UI_showTimeoutProgressLCD(int progress, int max);
+void UI_setupTFT();                   // 1st setup
+void UI_doHandleTFT(int16_t refresh); // must be in loop()!
 
 #endif

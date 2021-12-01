@@ -34,18 +34,10 @@ void setup()
     }
   }
 
-  M5.Lcd.setBrightness(LCD_BRIGHTNESS); // set default brightness
-  M5.Lcd.fillScreen(SCREEN_BACKGROUND);
-  UI_drawHeader(HEADER_TITLE, 0, 0, 0, 0, 0);
-  UI_drawFooter("", "", ">");
-  UI_deleteCanvas();
-  UI_drawMenue(showScreen);
-  UI_showActiveScreen(showScreen);
-  UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
+  UI_setupTFT();
 }
 
 void loop()
 {
-  M5.update();
   UI_doHandleTFT(REFRESH_RATE);
 }
