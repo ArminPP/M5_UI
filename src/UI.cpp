@@ -11,33 +11,36 @@ int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=GRA
 // internal Variables
 int16_t timerLCD = 0;
 
+#include "icons.h"
+
 void showWifiStrength()
-https://diyprojects.io/ttgo-t-watch-menu-pages-navigation-between-screens-tft_espi/#.Yad1cdDMKM8
-https://github.com/projetsdiy/T-Watch-Projects/tree/main/8_T-Watch_TFT_eSPI_menu/ico
-https://github.com/projetsdiy/T-Watch-Projects/blob/main/8_T-Watch_TFT_eSPI_menu/icones.h
+// https://diyprojects.io/ttgo-t-watch-menu-pages-navigation-between-screens-tft_espi/#.Yad1cdDMKM8
+// https://github.com/projetsdiy/T-Watch-Projects/tree/main/8_T-Watch_TFT_eSPI_menu/ico
+// https://github.com/projetsdiy/T-Watch-Projects/blob/main/8_T-Watch_TFT_eSPI_menu/icones.h
 
 {
-  int WifiRSSI = (millis() % 102) * -1; // WiFi.Rssi()
+  // int WifiRSSI = (millis() % 102) * -1; // WiFi.Rssi()
 
-  M5.Lcd.fillRect(40, 0, 68, 15, TFT_BLACK);
-  M5.Lcd.setCursor(40, 14);
-  M5.Lcd.print(String(WifiRSSI) + "dBm");
-  if (WifiRSSI > -50 & !WifiRSSI == 0)
-    M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_WHITE);
-  else
-    M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_DARKGREY);
-  if (WifiRSSI > -70 & !WifiRSSI == 0)
-    M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_WHITE);
-  else
-    M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_DARKGREY);
-  if (WifiRSSI > -80 & !WifiRSSI == 0)
-    M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_WHITE);
-  else
-    M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_DARKGREY);
-  if (WifiRSSI > -90 & !WifiRSSI == 0)
-    M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_WHITE);
-  else
-    M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_RED);
+  // M5.Lcd.fillRect(40, 0, 68, 15, TFT_BLACK);
+  // M5.Lcd.setCursor(40, 14);
+  // M5.Lcd.print(String(WifiRSSI) + "dBm");
+  // if (WifiRSSI > -50 & !WifiRSSI == 0)
+  //   M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_WHITE);
+  // else
+  //   M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_DARKGREY);
+  // if (WifiRSSI > -70 & !WifiRSSI == 0)
+  //   M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_WHITE);
+  // else
+  //   M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_DARKGREY);
+  // if (WifiRSSI > -80 & !WifiRSSI == 0)
+  //   M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_WHITE);
+  // else
+  //   M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_DARKGREY);
+  // if (WifiRSSI > -90 & !WifiRSSI == 0)
+  //   M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_WHITE);
+  // else
+  //   M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_RED);
+  M5.Lcd.drawXBitmap(170, 150, wifi32, icon_width, icon_height, TFT_WHITE, TFT_BLACK);
 }
 
 void UI_progressBar(int x, int y, int w, int h, uint8_t val100pcnt, uint32_t color)
@@ -137,6 +140,7 @@ void UI_showHome()
   M5.Lcd.drawString("Temperature 2: " + String((millis() % 118) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 30);
   M5.Lcd.drawString("Temperature 3: " + String((millis() % 108) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 50);
   M5.Lcd.drawString("Humidity:      " + String((millis() % 102)) + " %   ", 10, HEADER_HEIGHT + 30 + 70);
+  showWifiStrength();
 }
 
 void UI_showGraph()
