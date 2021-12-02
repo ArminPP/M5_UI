@@ -2,45 +2,92 @@
 #include <UI.h>
 #include <M5Stack.h>
 
+#include "icons.h"
 // NO FREE FONTS! Flicker when updating :-(
 // #include "Free_Fonts.h" // Include the header file attached to this sketch
 
 // global Variables
-int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=GRAPH 2=SETUP
+int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=ENV 2=ENV_GRAPH
 
 // internal Variables
 int16_t timerLCD = 0;
 
-#include "icons.h"
-
-void showWifiStrength()
-// https://diyprojects.io/ttgo-t-watch-menu-pages-navigation-between-screens-tft_espi/#.Yad1cdDMKM8
-// https://github.com/projetsdiy/T-Watch-Projects/tree/main/8_T-Watch_TFT_eSPI_menu/ico
-// https://github.com/projetsdiy/T-Watch-Projects/blob/main/8_T-Watch_TFT_eSPI_menu/icones.h
+void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock)
+// ETH, WiFi, AP are static icons, the change only if the connection changes
+// 'Info, Warning and Error are dynamic icons, if they are triggered they will blink every second
+// Clock updates every second... (maybe this ist to fast?)
+//
 
 {
-  // int WifiRSSI = (millis() % 102) * -1; // WiFi.Rssi()
+  if (ETH)
+  {
+    M5.Lcd.drawXBitmap(ICON_ETH_X, ICON_Y, ETH_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ETH_COLOR, ICON_BACKCOLOR);
+  }
+  else
+  {
+    M5.Lcd.drawXBitmap(ICON_ETH_X, ICON_Y, ETH_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+  if (WiFi)
+  {
+    M5.Lcd.drawXBitmap(ICON_WIFI_X, ICON_Y, WiFi_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WIFI_COLOR, ICON_BACKCOLOR);
+  }
+  else
+  {
+    M5.Lcd.drawXBitmap(ICON_WIFI_X, ICON_Y, WiFi_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+  if (AP)
+  {
+    M5.Lcd.drawXBitmap(ICON_AP_X, ICON_Y, AP_icon, ICON_WIDTH, ICON_HEIGHT, ICON_AP_COLOR, ICON_BACKCOLOR);
+  }
+  else
+  {
+    M5.Lcd.drawXBitmap(ICON_AP_X, ICON_Y, AP_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
 
-  // M5.Lcd.fillRect(40, 0, 68, 15, TFT_BLACK);
-  // M5.Lcd.setCursor(40, 14);
-  // M5.Lcd.print(String(WifiRSSI) + "dBm");
-  // if (WifiRSSI > -50 & !WifiRSSI == 0)
-  //   M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_WHITE);
-  // else
-  //   M5.Lcd.fillRoundRect(26, 1, 5, 12, 1, TFT_DARKGREY);
-  // if (WifiRSSI > -70 & !WifiRSSI == 0)
-  //   M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_WHITE);
-  // else
-  //   M5.Lcd.fillRoundRect(18, 3, 5, 10, 1, TFT_DARKGREY);
-  // if (WifiRSSI > -80 & !WifiRSSI == 0)
-  //   M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_WHITE);
-  // else
-  //   M5.Lcd.fillRoundRect(10, 5, 5, 8, 1, TFT_DARKGREY);
-  // if (WifiRSSI > -90 & !WifiRSSI == 0)
-  //   M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_WHITE);
-  // else
-  //   M5.Lcd.fillRoundRect(2, 7, 5, 6, 1, TFT_RED);
-  M5.Lcd.drawXBitmap(170, 150, wifi32, icon_width, icon_height, TFT_WHITE, TFT_BLACK);
+  // update dynamic icons every 1000 ms
+  static unsigned long refreshIconsPM = 0;
+  static bool TickTack = true;
+  unsigned long refreshIconsCM = millis();
+  if (refreshIconsCM - refreshIconsPM >= 1000)
+  {
+    refreshIconsPM = refreshIconsCM;
+    TickTack = !TickTack;
+
+    if (Clock)
+    {
+      M5.Lcd.setTextColor(DATE_TIME_COLOR, ICON_BACKCOLOR); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+      M5.Lcd.setTextSize(1);
+      M5.Lcd.setCursor(DATE_TIME_X, DATE_TIME_Y);
+      M5.Lcd.printf("%02i:%02i:%02i", 9, 30, 05);
+      M5.Lcd.setCursor(DATE_TIME_X, DATE_TIME_Y + 12);
+      M5.Lcd.printf("%02i-%02i-%04i", 02, 12, 2021);
+    }
+  }
+
+  if (Info && TickTack)
+  {
+    M5.Lcd.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_INFO_COLOR, ICON_BACKCOLOR);
+  }
+  else
+  {
+    M5.Lcd.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+  if (Warning && TickTack)
+  {
+    M5.Lcd.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WARNING_COLOR, ICON_BACKCOLOR);
+  }
+  else
+  {
+    M5.Lcd.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+  if (Error && TickTack)
+  {
+    M5.Lcd.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ERROR_COLOR, ICON_BACKCOLOR);
+  }
+  else
+  {
+    M5.Lcd.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
 }
 
 void UI_progressBar(int x, int y, int w, int h, uint8_t val100pcnt, uint32_t color)
@@ -51,7 +98,6 @@ void UI_progressBar(int x, int y, int w, int h, uint8_t val100pcnt, uint32_t col
 void UI_deleteCanvas()
 {
   M5.Lcd.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BACKGROUND); // x0,y0 are at top left
-  // M5.Lcd.drawRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_FRAME_COLOR);
   M5.Lcd.drawRoundRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, 6, CANVAS_FRAME_COLOR);
 }
 
@@ -64,14 +110,13 @@ void UI_drawHeader(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK, 
   M5.Lcd.drawString(Title, HEADER_TEXT_X, HEADER_TEXT_Y);
 }
 
-// void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3, bool btn1, bool btn2, bool btn3)
 void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3)
 {
   M5.Lcd.setTextSize(2);
   // M5.Lcd.setFreeFont(FSS9);
   M5.Lcd.setTextColor(BUTTON_TEXT_COLOR, BUTTON_COLOR);
 
-  // paint Buttons
+  // paint Button
   if (strlen(Btn1) > 0)
   {
     M5.Lcd.fillRoundRect(BUTTON_1_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);
@@ -114,14 +159,12 @@ void UI_drawMenue(int8_t activeItem)
     {
       M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT + 5, 0, MENU_COLOR); // draw active item +5px at bottom
       M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_COLOR);                                        // if text changes (eg. temperature value) explicit add canvas color as background color
-      // M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
     else
     {
       M5.Lcd.fillRect((i * space), HEADER_HEIGHT + MENU_HEIGHT, space, 5, CANVAS_BACKGROUND);       // delete space below from menue item
       M5.Lcd.fillRoundRect((i * space), HEADER_HEIGHT, space, MENU_HEIGHT, 0, MENU_INACTIVE_COLOR); // draw inactive item
       M5.Lcd.setTextColor(MENU_TEXT_COLOR, MENU_INACTIVE_COLOR);                                    // if text changes (eg. temperature value) explicit add canvas color as background color
-      // M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
     }
     M5.Lcd.drawString(screenName[i], i * space + MENU_TEXT_X, HEADER_HEIGHT + 12);
   }
@@ -130,51 +173,70 @@ void UI_drawMenue(int8_t activeItem)
 //  ------------------------------------------------------------------
 //  --------------------------- SCREENS ------------------------------
 //  ------------------------------------------------------------------
-void UI_showHome()
+void UI_screenHome()
 {
+  M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.drawString("Welcome to USS!", PAGE_X, PAGE_Y);
+  M5.Lcd.drawString("the UniversalSensorSystem", PAGE_X, PAGE_Y + 20);
+  M5.Lcd.drawString("--> " + String(millis()), PAGE_X, PAGE_Y + 40);
+}
+
+void UI_screenENV()
+{
+  /* //INFO                                                                          .
+  If you use drawString(), drawNumber() and drawFloat() you can use setPadding()
+  to automatically overwite old digits and text with background.
+  See TFT_Padding_demo example.
+  https: // github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-488424620
+
+  M5.Lcd.print("÷C");                      // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
+  M5.Lcd.drawString("`C", 50, 100, 2);     // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
+
+  */
+
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y);
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
   M5.Lcd.setTextSize(2);
 
   // use global json ProbeData for visualisation
-  M5.Lcd.drawString("Temperature 1: " + String((millis() % 128) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 10);
-  M5.Lcd.drawString("Temperature 2: " + String((millis() % 118) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 30);
-  M5.Lcd.drawString("Temperature 3: " + String((millis() % 108) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 50);
-  M5.Lcd.drawString("Humidity:      " + String((millis() % 102)) + " %   ", 10, HEADER_HEIGHT + 30 + 70);
-  showWifiStrength();
+  M5.Lcd.printf("T 1=%5.1f÷C  T 2=%5.1f÷C", (millis() % 128) * 0.1, (millis() % 118) * 0.1);
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y + 20);
+  M5.Lcd.printf("T 3=%5.1f÷C  T 4=%5.1f÷C", (millis() % 228) * 0.1, (millis() % 118) * 0.1);
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y + 40);
+  M5.Lcd.printf("T 5=%5.1f÷C  T 6=%5.1f÷C", (millis() % 28) * 0.1, (millis() % 118) * 0.1);
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y + 60);
+  M5.Lcd.printf("T 7=%5.1f÷C  T 8=%5.1f÷C", (millis() % 58) * 0.1, (millis() % 118) * 0.1);
+
+  // M5.Lcd.drawString("Temperature 1: " + String((millis() % 128) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 10);
+  // M5.Lcd.drawString("Temperature 2: " + String((millis() % 118) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 30);
+  // M5.Lcd.drawString("Temperature 3: " + String((millis() % 108) * 0.1) + " C  ", 10, HEADER_HEIGHT + 30 + 50);
+  // M5.Lcd.drawString("Humidity:      " + String((millis() % 102)) + " %   ", 10, HEADER_HEIGHT + 30 + 70);
 }
 
-void UI_showGraph()
+void UI_screenENVgraph()
 {
-  M5.Lcd.setCursor(30, 110);
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y);
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
   M5.Lcd.setTextSize(3);
-  M5.Lcd.print("Config ");
+  M5.Lcd.print("ENV_GRAPH ");
   M5.Lcd.println(millis());
 }
 
-void UI_showSetup()
+void UI_screenLOG()
 {
-  M5.Lcd.setCursor(30, 110);
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y);
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
   M5.Lcd.setTextSize(3);
-  M5.Lcd.print("SETUP ");
-  M5.Lcd.println(millis());
+  M5.Lcd.print("LOG");
 }
 
-void UI_showScreen4()
+void UI_screenSysInfo()
 {
-  M5.Lcd.setCursor(30, 110);
+  M5.Lcd.setCursor(PAGE_X, PAGE_Y);
   M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
   M5.Lcd.setTextSize(3);
-  M5.Lcd.print("Screen 4");
-}
-
-void UI_showScreen5()
-{
-  M5.Lcd.setCursor(30, 110);
-  M5.Lcd.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
-  M5.Lcd.setTextSize(3);
-  M5.Lcd.print("Screen 5");
+  M5.Lcd.print("SYSINFO");
 }
 //  ------------------------------------------------------------------
 //  ------------------------------------------------------------------
@@ -263,22 +325,24 @@ void UI_showActiveScreen(uint8_t screen)
   switch (screen)
   {
   case HOME:
-    UI_showHome();
+    UI_screenHome();
     break;
-  case GRAPH:
-    UI_showGraph();
+  case ENV:
+    UI_screenENV();
     break;
-  case SETUP:
-    UI_showSetup();
+  case ENV_GRAPH:
+    UI_screenENVgraph();
     break;
-  case SCREEN4:
-    UI_showScreen4();
+  case LOG:
+    UI_screenLOG();
     break;
-  case SCREEN5:
-    UI_showScreen5();
+  case SYSINFO:
+    UI_screenSysInfo();
     break;
   }
 }
+
+bool e, w, a, in, wa, er, cl; // DEBUG
 
 void UI_doHandleTFT(int16_t refresh)
 {
@@ -335,7 +399,17 @@ void UI_doHandleTFT(int16_t refresh)
   {
     refreshLcdPM = refreshLcdCM;
     UI_showActiveScreen(showScreen);
+
+    e = random(0, 2);  // DEBUG
+    w = random(0, 2);  // DEBUG
+    a = random(0, 2);  // DEBUG
+    in = random(0, 2); // DEBUG
+    wa = random(0, 2); // DEBUG
+    er = random(0, 2); // DEBUG
+    cl = random(0, 2); // DEBUG
   }
+
+  UI_drawIcons(e, w, a, in, wa, er, cl); // DEBUG
 }
 
 void UI_setupTFT()

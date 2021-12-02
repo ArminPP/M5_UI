@@ -20,13 +20,36 @@
 #define SCREEN_BACKGROUND TFT_LIGHTGREY
 
 // header definitions
-#define HEADER_TITLE "USS-SENSOR V1.0"
+#define HEADER_TITLE "USS V1.0"
 
 #define HEADER_HEIGHT 25
 #define HEADER_BACKGROUND 0x52AA // TFT_DARKGREY
 #define HEADER_TEXT_X 3
 #define HEADER_TEXT_Y 5
 #define HEADER_TEXT_COLOR TFT_BLACK
+
+// Icon definitions
+#define ICON_Y 5
+#define ICON_ETH_X 130
+#define ICON_WIFI_X ICON_ETH_X + 20
+#define ICON_AP_X ICON_WIFI_X + 20
+#define ICON_INFO_X ICON_AP_X + 20
+#define ICON_WARNING_X ICON_INFO_X + 20
+#define ICON_ERROR_X ICON_WARNING_X + 20
+
+#define ICON_BACKCOLOR HEADER_BACKGROUND
+#define ICON_BACKCOLOR_INACTIVE BUTTON_COLOR
+
+#define ICON_ETH_COLOR CANVAS_BACKGROUND
+#define ICON_WIFI_COLOR CANVAS_BACKGROUND
+#define ICON_AP_COLOR CANVAS_BACKGROUND
+#define ICON_INFO_COLOR TFT_BLUE
+#define ICON_WARNING_COLOR TFT_YELLOW
+#define ICON_ERROR_COLOR TFT_RED
+
+#define DATE_TIME_X ICON_WARNING_X + 50
+#define DATE_TIME_Y 3
+#define DATE_TIME_COLOR TFT_BLACK
 
 // menu definitions
 #define MENU_HEIGHT 25
@@ -65,24 +88,28 @@
 #define CANVAS_TEXT_COLOR TFT_MAROON
 #define CANVAS_BACKGROUND 0xBDD7 // TFT_LIGHTGREY
 
+// page definition
+#define PAGE_X CANVAS_X + 4
+#define PAGE_Y CANVAS_Y + 6
+
 // global Variables
-extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1=GRAPH 2=SETUP
+extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1=GRAPH 2=ENV_GRAPH
 
 const int noOfScreens = 5; // max 6-7 because of menue text length ...
 const char screenName[noOfScreens][15] = {
     {"HOME"},
-    {"GRAPH"},
-    {"SETUP"},
-    {"SCREEN4"},
-    {"SCREEN5"}};
+    {"ENV"},
+    {"ENV_GRAPH"},
+    {"LOG"},
+    {"SYSINFO"}};
 
 enum Screens
 {
     HOME,
-    GRAPH,
-    SETUP,
-    SCREEN4,
-    SCREEN5
+    ENV,
+    ENV_GRAPH,
+    LOG,
+    SYSINFO
 };
 
 void UI_setupTFT();                   // 1st setup
