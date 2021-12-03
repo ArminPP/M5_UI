@@ -1,7 +1,20 @@
 #ifndef UI_h
 #define UI_h
 
+#include <Arduino.h>
+
+#define useM5STACK // choose between M5Stack and TFT_eSPI
 #include <M5Stack.h>
+
+#ifdef useM5STACK    //
+#include <M5Stack.h> // compiles with the M5Stack variant of TFT_eSPI () library
+extern M5Display &TFT;
+#else                 //
+#include <TFT_eSPI.h> // and the original library as well
+extern TFT_eSPI TFT;
+#endif
+
+ #include "ytGraph.h"
 
 // global definitions
 #define REFRESH_RATE 3000  // screen refreshrate in ms
@@ -53,7 +66,8 @@
 
 // menu definitions
 #define MENU_HEIGHT 25
-#define MENU_TEXT_X 10
+#define MENU_TEXT_X 4
+#define MENU_TEXT_Y HEADER_HEIGHT + 10
 #define MENU_TEXT_COLOR TFT_BLACK
 #define MENU_COLOR TFT_DARKGREY
 #define MENU_INACTIVE_COLOR 0x9CF3
@@ -97,11 +111,11 @@ extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1
 
 const int noOfScreens = 5; // max 6-7 because of menue text length ...
 const char screenName[noOfScreens][15] = {
-    {"HOME"},
-    {"ENV"},
-    {"ENV_GRAPH"},
-    {"LOG"},
-    {"SYSINFO"}};
+    {"  Home   "}, // max 9 chars when 5 menu items are available
+    {"Env. data"},
+    {"Env Graph"},
+    {" Messages"},
+    {" Sysinfo "}};
 
 enum Screens
 {

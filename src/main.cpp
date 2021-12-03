@@ -1,9 +1,11 @@
 #define Version "M5_UI v1.1"
 /*
 
-Selbstentwickelte UI für den M5 Stack.
-Alle anderen Libraries sind zu komplex und benötigen zu viel Speicher.
+simple menu for (M5Stack) TFT screens 
+#####################################
 
+- has a small memory footprint, all other libraries uses to much memory
+- only for visualisation purposes (no input possible)
 
 
 
@@ -13,6 +15,8 @@ Alle anderen Libraries sind zu komplex und benötigen zu viel Speicher.
 #include <M5Stack.h>
 #include <UI.h>
 #include <Arduino.h>
+
+
 
 // LCD Status
 bool LCD = true;
