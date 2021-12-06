@@ -1,7 +1,7 @@
 #define Version "M5_UI v1.1"
 /*
 
-simple menu for (M5Stack) TFT screens 
+simple menu for (M5Stack) TFT screens
 #####################################
 
 - has a small memory footprint, all other libraries uses to much memory
@@ -13,13 +13,14 @@ simple menu for (M5Stack) TFT screens
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
 #include <M5Stack.h>
-#include <UI.h>
 #include <Arduino.h>
 
-
+#include "Display.h"
 
 // LCD Status
 bool LCD = true;
+
+
 
 void setup()
 {

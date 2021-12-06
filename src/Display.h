@@ -1,20 +1,20 @@
-#ifndef UI_h
-#define UI_h
+#ifndef DISPLAY_h
+#define DISPLAY_h
 
 #include <Arduino.h>
 
 #define useM5STACK // choose between M5Stack and TFT_eSPI
-#include <M5Stack.h>
+// #include <M5Stack.h>
 
-#ifdef useM5STACK    //
-#include <M5Stack.h> // compiles with the M5Stack variant of TFT_eSPI () library
-extern M5Display &TFT;
-#else                 //
-#include <TFT_eSPI.h> // and the original library as well
+#ifdef useM5STACK      //
+#include <M5Stack.h>   // compiles with the M5Stack variant of TFT_eSPI () library
+extern M5Display &TFT; //
+#else                  //
+#include <TFT_eSPI.h>  // and the original library as well
 extern TFT_eSPI TFT;
 #endif
 
- #include "ytGraph.h"
+#include "ytGraph.h"
 
 // global definitions
 #define REFRESH_RATE 3000  // screen refreshrate in ms
@@ -111,7 +111,7 @@ extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1
 
 const int noOfScreens = 5; // max 6-7 because of menue text length ...
 const char screenName[noOfScreens][15] = {
-    {"  Home   "}, // max 9 chars when 5 menu items are available
+    {"  Home   "}, // max 9 chars if 5 menu items are used
     {"Env. data"},
     {"Env Graph"},
     {" Messages"},
@@ -129,4 +129,4 @@ enum Screens
 void UI_setupTFT();                   // 1st setup
 void UI_doHandleTFT(int16_t refresh); // must be in loop()!
 
-#endif
+#endif // DISPLAY_h

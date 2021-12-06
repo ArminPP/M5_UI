@@ -1,28 +1,27 @@
 /***************************************************************************************
  * A set of ytGraph drawing functions
- * Platform: Arduino / ESP 
- * 
+ * Platform: Arduino / ESP
+ *
  *  - supports M5Stack and TFT_eSPI()
  *  - fully scalable
  *  - scroll flicker free
  *  - dynamic x axis
  *  - up to 16 channels
- *  - 
- * 
+ *  -
+ *
  * Armin Pressler 2021
  * https://github.com/ArminPP/ytGraph
- * 
- * 
- * 
+ *
+ *
+ *
  * MIT License
- * 
+ *
  * Changelog:
  * v0.5   initial version (28-Feb-2021)
-****************************************************************************************/
+ * v0.6   adapted for USS (06-Dec-2021)
+ ****************************************************************************************/
 
 #include "ytGraph.h"
-
-
 
 char *calcTime(int32_t t); // internal helper to calculate the relative time on x-axis
 
@@ -34,10 +33,8 @@ void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastX
 
   LastXGridLinePos = 0;
 
-  Graph.fillSprite(GRAPH_BGRND_COLOR);
-  xAxis.fillSprite(GRAPH_BGRND_COLOR);
   xAxis.setTextSize(1);
-  xAxis.setTextColor(GRAPH_AXIS_TEXT_COLOR, GRAPH_BGRND_COLOR);
+  xAxis.setTextColor(GRAPH_AXIS_TEXT_COLOR, GRAPH_AXIS_TEXT_BACKG_COLOR);
 
   step = lround((GRAPH_HEIGHT * GRAPH_Y_DIV) / (abs(GRAPH_Y_AXIS_MIN) + GRAPH_Y_AXIS_MAX)); // Scale y axis according to height of graph
   gTemp = GRAPH_HEIGHT;                                                                     // helper to paint axis
@@ -47,7 +44,7 @@ void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastX
     if (i == 0)
     {
       Graph.drawFastHLine(0, gTemp, GRAPH_WIDTH, GRAPH_AXIS_LINE_COLOR);
-      Graph.drawFastHLine(0, gTemp + 1, GRAPH_WIDTH, GRAPH_AXIS_LINE_COLOR);
+      Graph.drawFastHLine(0, gTemp + 1, GRAPH_WIDTH, GRAPH_AXIS_LINE_COLOR); // BOLD mode
     }
     else
     {
@@ -78,12 +75,15 @@ void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastX
     }
     // draw xaxis division values
     xAxis.setCursor(gTemp + 5, (X_AXIS_HEIGTH - 8)); // vertically aligned
-    xAxis.print(calcTime((int)i));                   // helper to calculate the relative time on x-axis
-    gTemp += step;                                   // calculate new position of grid line
+    // NEW: subtract GRAPH_X_AXIS_MAX from i to start with '0' on the right side of the graph!
+    // INFO: don't paint a value, start with the real Time?!
+    xAxis.print("00:00");
+    // xAxis.print(calcTime((int)i - GRAPH_X_AXIS_MAX)); // helper to calculate the relative time on x-axis
+    gTemp += step; // calculate new position of grid line
   }
 
-  xAxis.pushSprite(X_AXIS_LEFT_X, X_AXIS_UPPER_Y, GRAPH_BGRND_COLOR); //, GRAPH_BGRND_COLOR
-  Graph.pushSprite(SPRITE_LEFT_X, SPRITE_UPPER_Y, GRAPH_BGRND_COLOR); // left upper position
+  xAxis.pushSprite(X_AXIS_LEFT_X, X_AXIS_UPPER_Y); //, GRAPH_BGRND_COLOR
+  Graph.pushSprite(SPRITE_LEFT_X, SPRITE_UPPER_Y); // GRAPH_BGRND_COLOR); // left upper position
 }
 
 void ytGraphDrawDynamicGrid(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t oox, int16_t &LastGridLineXPos)
@@ -127,7 +127,8 @@ void ytGraphDrawDynamicGrid(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t oox,
     // draw xaxis division values
     xAxis.setCursor(GRAPH_WIDTH + 5, (X_AXIS_HEIGTH - 8)); // vertically aligned
     lastXaxisValue += GRAPH_X_DIV;                         // increment with division value
-    xAxis.print(calcTime(lastXaxisValue));
+    // xAxis.print(calcTime(lastXaxisValue - GRAPH_X_AXIS_MAX)); // NEW: subtract GRAPH_X_AXIS_MAX from i to start with '0' on the right side of the graph!
+    xAxis.printf("%02i:%02i", 10, (int)(millis()/1000) % 100); // INFO: don't paint a value, start with the real Time?!
   }
 }
 
@@ -138,7 +139,8 @@ void ytGraphDrawYaxisFrame(M5Display &d)
   double step;
 
   d.setTextSize(1);
-  d.setTextColor(GRAPH_AXIS_TEXT_COLOR, GRAPH_BGRND_COLOR);
+  // d.setTextColor(GRAPH_AXIS_TEXT_COLOR, GRAPH_BGRND_COLOR);
+  d.setTextColor(GRAPH_AXIS_TEXT_COLOR, GRAPH_AXIS_TEXT_BACKG_COLOR);
 
   // draw main Y axis
   d.drawFastVLine(GRAPH_X_LEFT_POS - 1, GRAPH_Y_BOTTOM_POS - GRAPH_HEIGHT,
@@ -170,14 +172,16 @@ void ytGraphDrawYaxisFrame(M5Display &d)
     if (gTemp < 0) // due to round errors at variable 'step', correction to zero
       gTemp = 0;
   }
-
-  // x-axis unit label
-  d.setTextColor(GRAPH_AXIS_LINE_COLOR, GRAPH_BGRND_COLOR);
-  d.setCursor(GRAPH_X_LEFT_POS + GRAPH_WIDTH + 6, GRAPH_Y_BOTTOM_POS - 5);
-  d.println(GRAPH_X_AXIS_LABEL);
-  // y-axis unit label
-  d.setCursor(2, GRAPH_Y_BOTTOM_POS - GRAPH_HEIGHT - 15);
-  d.println(GRAPH_Y_AXIS_LABEL);
+  /* // TODO                                                                                          .
+    // x-axis unit label
+    d.setTextColor(GRAPH_AXIS_LINE_COLOR, GRAPH_BGRND_COLOR);
+    d.setCursor(GRAPH_X_LEFT_POS + GRAPH_WIDTH + 6, GRAPH_Y_BOTTOM_POS - 5);
+    d.println(GRAPH_X_AXIS_LABEL);
+    // y-axis unit label
+    d.setCursor(2, GRAPH_Y_BOTTOM_POS - GRAPH_HEIGHT - 15);
+    d.println(GRAPH_Y_AXIS_LABEL);
+  */
+  // TODO                                                                                          .
 }
 
 void ytGraph(TFT_eSprite &Graph, uint16_t x, int16_t y, uint16_t LineColor, int16_t &ox, int16_t &oy)
@@ -198,7 +202,7 @@ char *calcTime(int32_t t) // helper to calculate the relative time on x-axis
   uint8_t sec = 0, min = 0, hour = 0, day = 0; // to format time value (from nnn sec to dhms...)
   static char str[20]{};                       // returns the formated time value
 
-  switch (SAMPLE_TIME_FORMAT) // time base to format (s->min->h->d ...)
+  switch (SAMPLE_RATE) // time base to format (s->min->h->d ...)
   {
   case 'S': // base is seconds
     sec = t % 60;

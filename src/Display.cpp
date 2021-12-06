@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <UI.h>
 #include <M5Stack.h>
 
+#include "Display.h"
 #include "icons.h"
 // NO FREE FONTS! Flicker when updating :-(
 // #include "Free_Fonts.h" // Include the header file attached to this sketch
@@ -9,7 +9,6 @@
 // Pointer for TFT for using both libs with the same code
 #ifdef useM5STACK
 M5Display &TFT = M5.Lcd;
-;
 #else
 TFT_eSPI TFT = TFT_eSPI();
 #endif
@@ -23,12 +22,92 @@ int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=ENV
 // internal Variables
 int16_t timerLCD = 0;
 
+// TODO TEST                                                                                .
+// TODO TEST                                                                                .
+
+char *getAllFreeHeap()
+{
+  static char freeH[80]{}; // returns the formated free heap space
+  sprintf(freeH, "Size:%.2fkB Free:%.2fkB Min:%.2fkB Max:%.2fkB",
+          ESP.getHeapSize() / 1024.0,
+          ESP.getFreeHeap() / 1024.0,
+          ESP.getMinFreeHeap() / 1024.0,
+          ESP.getMaxAllocHeap() / 1024.0);
+  return freeH;
+}
+
+void printFreeHeap() // for debugging issues
+{
+  TFT.setCursor(0, 60);
+  TFT.setTextSize(1);
+  TFT.setTextColor(TFT_BLACK);
+  TFT.print(getAllFreeHeap());
+  TFT.setCursor(70, 70);
+  TFT.print((int)(millis() * 1000) % 100);
+  Serial.println(getAllFreeHeap());
+}
+
+static int16_t oy1 = 0; // static, local or global var to store the last y position in graph
+static int16_t oy2 = 0; // is need after each drawing of the historical buffer!
+static int16_t oy3 = 0;
+static int16_t oy4 = 0;
+static int16_t ox1 = 0; // for each new drwaing of historical data, x axis starts at zero
+static int16_t ox2 = 0;
+static int16_t ox3 = 0;
+static int16_t ox4 = 0;
+static int16_t LastXGridLinePos = 0; // for dynamic scrolling - to add new gridline at proper place
+
+void Display_DrawValues()
+{
+  // update dynamic icons every 1000 ms
+  static unsigned long refreshIconsPM = 0;
+  unsigned long refreshIconsCM = millis();
+  if (refreshIconsCM - refreshIconsPM >= 1000)
+  {
+    refreshIconsPM = refreshIconsCM;
+
+    printFreeHeap(); // DEBUG
+
+    int16_t scrollX = round(GRAPH_WIDTH / SAMPLE_COUNT); // scroll one sample to the left
+
+    ox1 -= scrollX; // correction of the last point in graph after scrolling to the left
+    ox2 -= scrollX;
+    ox3 -= scrollX;
+    ox4 -= scrollX;
+
+    Graph.scroll(-scrollX);
+    xAxis.scroll(-scrollX);
+
+    ytGraphDrawDynamicGrid(Graph, xAxis, ox4, LastXGridLinePos);
+
+    // add to the the end of the buffer the latest sensor reading
+    int16_t temperature1 = lround(random(2, 5));
+    int16_t temperature2 = lround(random(8, 12));
+    int16_t temperature3 = lround(random(15, 20));
+    int16_t humidity = random(30, 35);
+
+    Serial.println(temperature1);
+    Serial.println(temperature2);
+    Serial.println(temperature3);
+    Serial.println(humidity);
+
+    ytGraph(Graph, SAMPLE_COUNT, temperature1, TFT_CYAN, ox1, oy1);
+    ytGraph(Graph, SAMPLE_COUNT, temperature2, TFT_PINK, ox2, oy2);
+    ytGraph(Graph, SAMPLE_COUNT, temperature3, TFT_YELLOW, ox3, oy3);
+    ytGraph(Graph, SAMPLE_COUNT, humidity, TFT_MAGENTA, ox4, oy4);
+
+    xAxis.pushSprite(X_AXIS_LEFT_X, X_AXIS_UPPER_Y); // no Background color
+    Graph.pushSprite(SPRITE_LEFT_X, SPRITE_UPPER_Y); // left upper position
+  }
+}
+// TODO TEST                                                                                .
+// TODO TEST                                                                                .
+
 void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock)
 // ETH, WiFi, AP are static icons, the change only if the connection changes
 // 'Info, Warning and Error are dynamic icons, if they are triggered they will blink every second
 // Clock updates every second... (maybe this ist to fast?)
 //
-
 {
   if (ETH)
   {
@@ -340,31 +419,18 @@ void UI_showActiveScreen(uint8_t screen)
     UI_screenHome();
     break;
   case ENV:
-    Graph.deleteSprite();
-    xAxis.deleteSprite();
+    // Graph.deleteSprite();
+    // xAxis.deleteSprite();
     UI_screenENV();
     break;
   case ENV_GRAPH:
   {
 
-    // prepare sprites for graph
-    Graph.setColorDepth(4);                                                                       // max 16 graph lines with different colors
-    Graph.createSprite(SPRITE_WIDTH, SPRITE_HEIGTH);                                              // height = width at M5Stack (landscape mode!)
-                                                                                                  // Graph.fillScreen(TFT_DARKGREY);
-                                                                                                  // delay(2000);
-                                                                                                  // Graph.fillSprite(TFT_RED);
-    TFT.fillRoundRect(SPRITE_LEFT_X, SPRITE_UPPER_Y, SPRITE_WIDTH, SPRITE_HEIGTH, 5, MENU_COLOR); // draw active item +5px at bottom
-    xAxis.setColorDepth(1);                                                                       // save some kBytes, only 2 axis text colors available...
-    xAxis.createSprite(X_AXIS_WIDTH, X_AXIS_HEIGTH);
-    // draw demo with 4 channels and no buffer, e.g. could be used for life data
-    // no scrolling - graph must be redrawed at the end of the last data point
-    // TFT.fillScreen(GRAPH_BGRND_COLOR);
-
     ytGraphDrawYaxisFrame(TFT); // draw the y axis and the frame once
 
-    int16_t LastXGridLinePos = 0;
-    ytGraphDrawGridXaxis(Graph, xAxis, LastXGridLinePos); // draw the grid
-
+    // int16_t LastXGridLinePos = 0;
+    // ytGraphDrawGridXaxis(Graph, xAxis, LastXGridLinePos); // draw the grid
+    Display_DrawValues();
     // UI_screenENVgraph();
 
     break;
@@ -449,10 +515,36 @@ void UI_doHandleTFT(int16_t refresh)
 
 void UI_setupTFT()
 {
-  TFT.begin();
-  TFT.setRotation(1); // landscape mode for M5Stack
-
   TFT.setBrightness(LCD_BRIGHTNESS); // set default brightness
   TFT.fillScreen(SCREEN_BACKGROUND); // set default background color
-  UI_doHandleTFT(0);                 // start with default screen
+
+  // GRAPH  ------------------------------------------------------------
+  Graph.setColorDepth(4);                          // max 16 graph lines with different colors
+  Graph.createSprite(SPRITE_WIDTH, SPRITE_HEIGTH); // height = width at M5Stack (landscape mode!)
+
+  Graph.fillSprite(GRAPH_BGRND_COLOR);                                       // Note: Sprite is filled with black when created
+  Graph.setScrollRect(0, 0, SPRITE_WIDTH, SPRITE_HEIGTH, GRAPH_BGRND_COLOR); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
+
+  xAxis.setColorDepth(4); // could not save some kBytes, @depth(1) only black&white colors are available...
+  xAxis.createSprite(X_AXIS_WIDTH, X_AXIS_HEIGTH);
+
+  xAxis.fillSprite(CANVAS_BACKGROUND);                                       // Note: Sprite is filled with black when created
+  xAxis.setScrollRect(0, 0, X_AXIS_WIDTH, X_AXIS_HEIGTH, CANVAS_BACKGROUND); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
+
+  ytGraphDrawGridXaxis(Graph, xAxis, LastXGridLinePos); // draw the grid
+
+  // move startin point to the right side of the grap canvas
+  // so the diagonal lines from the left side are now gon,
+  // when no historicalvalues are drawed!
+  //
+  ox1 = SPRITE_WIDTH; // correction of the last point in graph after scrolling to the left
+  ox2 = SPRITE_WIDTH;
+  ox3 = SPRITE_WIDTH;
+  ox4 = SPRITE_WIDTH;
+  // GRAPH  ------------------------------------------------------------
+
+  Display_DrawValues(); // ????
+                        // GRAPH  ------------------------------------------------------------
+
+  UI_doHandleTFT(0); // start with default screen
 }
