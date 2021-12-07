@@ -15,10 +15,11 @@ extern TFT_eSPI TFT;
 #endif
 
 #include "ytGraph.h"
+#include "TFTTerminal.h"
 
 // global definitions
 #define REFRESH_RATE 3000  // screen refreshrate in ms
-#define LCD_TIMEOUT 130    // 30 sec
+#define LCD_TIMEOUT 300    // 300 sec
 #define LCD_BRIGHTNESS 250 // 0 .. 255  -->  default value, after timeout it is zero!
 
 // https://www.barth-dev.de/online/rgb565-color-picker/

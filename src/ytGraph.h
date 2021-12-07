@@ -27,39 +27,46 @@
 
 // --------------------------------------------------------------------------------------
 
-#define SAMPLE_COUNT 120       // how many samples in one graph
-#define SAMPLE_RATE 1          // interval in time format below
-#define SAMPLE_TIME_FORMAT 'S' // time base to format time in S_econds/M_inutes/H_ours/D_ays/...
+#define LEGEND_1 "Temp1|÷C" // check max. chars per line!
+#define LEGEND_2 "Temp2|÷C"
+#define LEGEND_3 "Hum|%   "
+#define LEGEND_4 "Co|ppm  "
+#define LEGEND_5 "TVOC|pp "
 
-#define GRAPH_X_LEFT_POS 40                           // uint - lower left x position
-#define GRAPH_Y_BOTTOM_POS 180                        // uint - lower left y position MUST BE LARGER THAN GRAPH_HEIGHT!
-#define GRAPH_WIDTH 220                               // uint - only axis to axis, without axis/div description in sprite frame
-#define GRAPH_HEIGHT 100                              // uint - only axis to axis, without axis/div description in sprite frame
-#define GRAPH_X_AXIS_MIN 0                            // int  - should be >= 0 (Time is positive!)
-#define GRAPH_X_AXIS_MAX (SAMPLE_COUNT * SAMPLE_RATE) // end of axis is (num of samples * sample rate)
-#define GRAPH_X_DIV 20                                // uint - division of x axis (time) // INFO not to small, because timestamp needs space "10:34"
-#define GRAPH_Y_AXIS_MIN 0.0                          // double
-#define GRAPH_Y_AXIS_MAX 120.0                        // double
-#define GRAPH_Y_DIV 30                                // uint - division of y axis
+#define LEGEND_1_COLOR TFT_CYAN
+#define LEGEND_2_COLOR TFT_PINK
+#define LEGEND_3_COLOR TFT_YELLOW
+#define LEGEND_4_COLOR TFT_MAGENTA
+#define LEGEND_5_COLOR 0xFA08 // redish
+
+#define SAMPLE_COUNT 120                // how many samples in one graph
+                                        //
+#define GRAPH_X_LEFT_POS 35             // uint - lower left x position
+#define GRAPH_Y_BOTTOM_POS 180          // uint - lower left y position MUST BE LARGER THAN GRAPH_HEIGHT!
+#define GRAPH_WIDTH 250                 // uint - only axis to axis, without axis/div description in sprite frame
+#define GRAPH_HEIGHT 100                // uint - only axis to axis, without axis/div description in sprite frame
+#define GRAPH_X_AXIS_MIN 0              // int  - should be >= 0 (Time is positive!)
+#define GRAPH_X_AXIS_MAX (SAMPLE_COUNT) // end of axis is (num of samples * sample rate)
+#define GRAPH_X_DIV 20                  // uint - division of x axis (time) // INFO not to small, because timestamp needs space "10:34"
+#define GRAPH_Y_AXIS_MIN 0.0            // double
+#define GRAPH_Y_AXIS_MAX 120.0          // double
+#define GRAPH_Y_DIV 30                  // uint - division of y axis
 
 #define SPRITE_LEFT_X GRAPH_X_LEFT_POS                     // this is the "real" position of the graph
 #define SPRITE_UPPER_Y (GRAPH_Y_BOTTOM_POS - GRAPH_HEIGHT) // this is the "real" position of the graph
 #define SPRITE_WIDTH GRAPH_WIDTH + 1                       // x Grid
 #define SPRITE_HEIGTH GRAPH_HEIGHT + 2                     // y Grid & x-axis
 
-#define X_AXIS_WIDTH SPRITE_WIDTH + 50 // Axis width is larger than sprite
+#define X_AXIS_WIDTH SPRITE_WIDTH + 30 // Axis width is larger than sprite
 #define X_AXIS_HEIGTH 15
 #define X_AXIS_LEFT_X GRAPH_X_LEFT_POS - 10
 #define X_AXIS_UPPER_Y GRAPH_Y_BOTTOM_POS + 4
 
-#define GRAPH_AXIS_LINE_COLOR TFT_ORANGE
-#define GRAPH_BGRND_COLOR 0x5ACB // TFT_DARKGREY
+#define GRAPH_AXIS_LINE_COLOR TFT_BLACK
+#define GRAPH_BGRND_COLOR 0x10A2 // TFT_BLACK //0x630C        // 0x4208 // 0x5ACB // TFT_DARKGREY
 #define GRAPH_AXIS_TEXT_COLOR TFT_BLACK
 #define GRAPH_AXIS_TEXT_BACKG_COLOR 0xBDD7
 #define GRAPH_GRID_COLOR TFT_LIGHTGREY
-
-#define GRAPH_X_AXIS_LABEL "t" // (x)time axis caption
-#define GRAPH_Y_AXIS_LABEL ""  // y axis caption
 
 void ytGraphDrawYaxisFrame(M5Display &d);
 void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastXGridLinePos);

@@ -39,7 +39,7 @@ void setup()
     }
   }
 
-  UI_setupTFT();
+  UI_setupTFT();  // INFO IMPORTANT MUST CALLED IN MAIN SETUP FIRST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 void loop()

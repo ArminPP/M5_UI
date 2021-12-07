@@ -23,8 +23,6 @@
 
 #include "ytGraph.h"
 
-char *calcTime(int32_t t); // internal helper to calculate the relative time on x-axis
-
 void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastXGridLinePos)
 {
   double i;
@@ -55,7 +53,7 @@ void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastX
       gTemp = 0;
   }
 
-  step = lround((GRAPH_WIDTH * GRAPH_X_DIV) / (abs(GRAPH_X_AXIS_MIN) + (SAMPLE_COUNT * SAMPLE_RATE))); // scale x axis according to width of graph
+  step = lround((GRAPH_WIDTH * GRAPH_X_DIV) / (abs(GRAPH_X_AXIS_MIN) + SAMPLE_COUNT)); // scale x axis according to width of graph
   gTemp = 0;
   // helper to paint axis
   // draw y grid lines & x scale numbers
@@ -74,12 +72,10 @@ void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastX
       Graph.drawFastVLine(gTemp, GRAPH_HEIGHT - GRAPH_HEIGHT, GRAPH_HEIGHT, GRAPH_GRID_COLOR);
     }
     // draw xaxis division values
-    xAxis.setCursor(gTemp + 5, (X_AXIS_HEIGTH - 8)); // vertically aligned
-    // NEW: subtract GRAPH_X_AXIS_MAX from i to start with '0' on the right side of the graph!
-    // INFO: don't paint a value, start with the real Time?!
-    xAxis.print("00:00");
-    // xAxis.print(calcTime((int)i - GRAPH_X_AXIS_MAX)); // helper to calculate the relative time on x-axis
-    gTemp += step; // calculate new position of grid line
+    xAxis.setCursor(gTemp - 5, (X_AXIS_HEIGTH - 8)); // vertically aligned
+    xAxis.print("00:00");                            // INFO calculate time from past and print it (eg: now 10:10 -> print 09:10, 09:20, 09:30, ..)
+                                                     // INFO LAST TIMESTAMP has to be now!!!!
+    gTemp += step;                                   // calculate new position of grid line
   }
 
   xAxis.pushSprite(X_AXIS_LEFT_X, X_AXIS_UPPER_Y); //, GRAPH_BGRND_COLOR
@@ -125,10 +121,9 @@ void ytGraphDrawDynamicGrid(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t oox,
     xScrollCount = correction; // restart with correction value
 
     // draw xaxis division values
-    xAxis.setCursor(GRAPH_WIDTH + 5, (X_AXIS_HEIGTH - 8)); // vertically aligned
-    lastXaxisValue += GRAPH_X_DIV;                         // increment with division value
-    // xAxis.print(calcTime(lastXaxisValue - GRAPH_X_AXIS_MAX)); // NEW: subtract GRAPH_X_AXIS_MAX from i to start with '0' on the right side of the graph!
-    xAxis.printf("%02i:%02i", 10, (int)(millis()/1000) % 100); // INFO: don't paint a value, start with the real Time?!
+    xAxis.setCursor(GRAPH_WIDTH - 5, (X_AXIS_HEIGTH - 8));       // vertically aligned
+    lastXaxisValue += GRAPH_X_DIV;                               // increment with division value
+    xAxis.printf("%02i:%02i", 10, (int)(millis() / 1000) % 100); // INFO: don't paint a value, start with the real Time?!
   }
 }
 
@@ -172,16 +167,6 @@ void ytGraphDrawYaxisFrame(M5Display &d)
     if (gTemp < 0) // due to round errors at variable 'step', correction to zero
       gTemp = 0;
   }
-  /* // TODO                                                                                          .
-    // x-axis unit label
-    d.setTextColor(GRAPH_AXIS_LINE_COLOR, GRAPH_BGRND_COLOR);
-    d.setCursor(GRAPH_X_LEFT_POS + GRAPH_WIDTH + 6, GRAPH_Y_BOTTOM_POS - 5);
-    d.println(GRAPH_X_AXIS_LABEL);
-    // y-axis unit label
-    d.setCursor(2, GRAPH_Y_BOTTOM_POS - GRAPH_HEIGHT - 15);
-    d.println(GRAPH_Y_AXIS_LABEL);
-  */
-  // TODO                                                                                          .
 }
 
 void ytGraph(TFT_eSprite &Graph, uint16_t x, int16_t y, uint16_t LineColor, int16_t &ox, int16_t &oy)
@@ -195,62 +180,4 @@ void ytGraph(TFT_eSprite &Graph, uint16_t x, int16_t y, uint16_t LineColor, int1
 
   ox = x; // store the latest x position for next drawing event
   oy = y; // store the latest y position for next drawing event
-}
-
-char *calcTime(int32_t t) // helper to calculate the relative time on x-axis
-{
-  uint8_t sec = 0, min = 0, hour = 0, day = 0; // to format time value (from nnn sec to dhms...)
-  static char str[20]{};                       // returns the formated time value
-
-  switch (SAMPLE_RATE) // time base to format (s->min->h->d ...)
-  {
-  case 'S': // base is seconds
-    sec = t % 60;
-    t = (t - sec) / 60;
-    min = t % 60;
-    t = (t - min) / 60;
-    hour = t % 24;
-    t = (t - hour) / 24;
-    day = t;
-
-    if (day > 0)
-      sprintf(str, "%id%ih%im%is", day, hour, min, sec);
-    else if (hour > 0)
-      sprintf(str, "%ih%im%is", hour, min, sec);
-    else if (min > 0)
-      sprintf(str, "%im%is", min, sec);
-    else if (sec >= 0) // >= to draw the initial zero for the 1st time
-      sprintf(str, "%is", sec);
-    break;
-  case 'M': // base is minutes
-    min = t % 60;
-    t = (t - min) / 60;
-    hour = t % 24;
-    t = (t - hour) / 24;
-    day = t;
-
-    if (day > 0)
-      sprintf(str, "%id%ih%im", day, hour, min);
-    else if (hour > 0)
-      sprintf(str, "%ih%im", hour, min);
-    else if (min >= 0) // >= to draw the initial zero for the 1st time
-      sprintf(str, "%im", min);
-    break;
-  case 'H': // base is hours
-    hour = t % 24;
-    t = (t - hour) / 24;
-    day = t;
-
-    if (day > 0)
-      sprintf(str, "%id%ih", day, hour);
-    else if (hour >= 0) // >= to draw the initial zero for the 1st time
-      sprintf(str, "%ih", hour);
-    break;
-
-  default:
-    sprintf(str, "%i", t); // add new x axis value - unformatted
-    break;
-  }
-
-  return str;
 }
