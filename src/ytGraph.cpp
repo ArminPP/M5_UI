@@ -23,6 +23,99 @@
 
 #include "ytGraph.h"
 
+static int16_t oy1 = 0; // static, local or global var to store the last y position in graph
+static int16_t oy2 = 0; // is need after each drawing of the historical buffer!
+static int16_t oy3 = 0;
+static int16_t oy4 = 0;
+static int16_t oy5 = 0;
+static int16_t ox1 = 0; // for each new drwaing of historical data, x axis starts at zero
+static int16_t ox2 = 0;
+static int16_t ox3 = 0;
+static int16_t ox4 = 0;
+static int16_t ox5 = 0;
+static int16_t LastXGridLinePos = 0; // for dynamic scrolling - to add new gridline at proper place
+
+void setupGraph(TFT_eSprite &Graph, TFT_eSprite &xAxis)
+{
+  Graph.setColorDepth(4);                          // max 16 graph lines with different colors
+  Graph.createSprite(SPRITE_WIDTH, SPRITE_HEIGTH); // height = width at M5Stack (landscape mode!)
+
+  Graph.fillSprite(GRAPH_BGRND_COLOR);                                       // Note: Sprite is filled with black when created
+  Graph.setScrollRect(0, 0, SPRITE_WIDTH, SPRITE_HEIGTH, GRAPH_BGRND_COLOR); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
+
+  xAxis.setColorDepth(4); // could not save some kBytes, with depth(1) only black&white colors are available ?!
+  xAxis.createSprite(X_AXIS_WIDTH, X_AXIS_HEIGTH);
+
+  xAxis.fillSprite(GRAPH_AXIS_TEXT_BACKG_COLOR);                                       // Note: Sprite is filled with black when created
+  xAxis.setScrollRect(0, 0, X_AXIS_WIDTH, X_AXIS_HEIGTH, GRAPH_AXIS_TEXT_BACKG_COLOR); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
+
+  ytGraphDrawGridXaxis(Graph, xAxis, LastXGridLinePos); // draw the grid
+
+  // move starting point to the right side of the grap canvas
+  // so the diagonal lines from the left side are now gon,
+  // when no historicalvalues are drawed!
+  ox1 = SPRITE_WIDTH; // correction of the last point in graph after scrolling to the left
+  ox2 = SPRITE_WIDTH;
+  ox3 = SPRITE_WIDTH;
+  ox4 = SPRITE_WIDTH;
+  ox5 = SPRITE_WIDTH;
+}
+
+void showGraph(TFT_eSprite &Graph, TFT_eSprite &xAxis, M5Display &TFT)
+{
+  ytGraphDrawYaxisFrame(TFT);
+  xAxis.pushSprite(X_AXIS_LEFT_X, X_AXIS_UPPER_Y); // no Background color
+  Graph.pushSprite(SPRITE_LEFT_X, SPRITE_UPPER_Y); // left upper position
+  ytGraphDrawLegend(TFT);
+}
+
+void printGraph(TFT_eSprite &Graph, TFT_eSprite &xAxis, GraphValues_t &GV)
+{
+  int16_t scrollX = round(GRAPH_WIDTH / SAMPLE_COUNT); // scroll one sample to the left
+
+  ox1 -= scrollX; // correction of the last point in graph after scrolling to the left
+  ox2 -= scrollX;
+  ox3 -= scrollX;
+  ox4 -= scrollX;
+  ox5 -= scrollX;
+
+  Graph.scroll(-scrollX);
+  xAxis.scroll(-scrollX);
+
+  ytGraphDrawDynamicGrid(Graph, xAxis, ox4, LastXGridLinePos, GV.TimeStamp);
+
+  ytGraph(Graph, SAMPLE_COUNT, (int)(GV.BMP280_Temperature + 0.5), LEGEND_1_COLOR, ox1, oy1); // cast from float to int and round correctly
+  ytGraph(Graph, SAMPLE_COUNT, (int)(GV.SHT30_Temperature + 0.5), LEGEND_2_COLOR, ox2, oy2);
+  ytGraph(Graph, SAMPLE_COUNT, (int)(GV.eCO2 + 0.5), LEGEND_3_COLOR, ox3, oy3);
+  ytGraph(Graph, SAMPLE_COUNT, (int)(GV.Humidity + 0.5), LEGEND_4_COLOR, ox4, oy4);
+  ytGraph(Graph, SAMPLE_COUNT, (int)(GV.TVOC + 0.5), LEGEND_5_COLOR, ox5, oy5);
+}
+
+void ytGraphDrawLegend(M5Display &TFT)
+{
+  TFT.setTextSize(1);
+  TFT.setTextColor(TFT_BLACK);
+  TFT.fillRect(10, 60, 8, 8, LEGEND_1_COLOR);
+  TFT.setCursor(20, 60);
+  TFT.print(LEGEND_1);
+  TFT.fillRect(75, 60, 8, 8, LEGEND_2_COLOR);
+  TFT.setCursor(85, 60);
+  TFT.print(LEGEND_2);
+  TFT.fillRect(140, 60, 8, 8, LEGEND_3_COLOR);
+  TFT.setCursor(150, 60);
+  TFT.print(LEGEND_3);
+  TFT.fillRect(200, 60, 8, 8, LEGEND_4_COLOR);
+  TFT.setCursor(210, 60);
+  TFT.print(LEGEND_4);
+  TFT.fillRect(260, 60, 8, 8, LEGEND_5_COLOR);
+  TFT.setCursor(270, 60);
+  TFT.print(LEGEND_5);
+}
+
+// -------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------------------
+
 void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastXGridLinePos)
 {
   double i;
@@ -82,7 +175,7 @@ void ytGraphDrawGridXaxis(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t &LastX
   Graph.pushSprite(SPRITE_LEFT_X, SPRITE_UPPER_Y); // GRAPH_BGRND_COLOR); // left upper position
 }
 
-void ytGraphDrawDynamicGrid(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t oox, int16_t &LastGridLineXPos)
+void ytGraphDrawDynamicGrid(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t oox, int16_t &LastGridLineXPos, const char *TimeStamp)
 {
   static uint32_t lastXaxisValue = GRAPH_X_AXIS_MAX;
 
@@ -121,9 +214,10 @@ void ytGraphDrawDynamicGrid(TFT_eSprite &Graph, TFT_eSprite &xAxis, int16_t oox,
     xScrollCount = correction; // restart with correction value
 
     // draw xaxis division values
-    xAxis.setCursor(GRAPH_WIDTH - 5, (X_AXIS_HEIGTH - 8));       // vertically aligned
-    lastXaxisValue += GRAPH_X_DIV;                               // increment with division value
-    xAxis.printf("%02i:%02i", 10, (int)(millis() / 1000) % 100); // INFO: don't paint a value, start with the real Time?!
+    xAxis.setCursor(GRAPH_WIDTH - 5, (X_AXIS_HEIGTH - 8)); // vertically aligned
+    lastXaxisValue += GRAPH_X_DIV;                         // increment with division value
+    // xAxis.printf("%02i:%02i", 10, (int)(millis() / 1000) % 100); // INFO: don't paint a value, start with the real Time?!
+    xAxis.print(TimeStamp);
   }
 }
 

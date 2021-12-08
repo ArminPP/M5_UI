@@ -3,7 +3,9 @@
 
 #include "Display.h"
 #include "icons.h"
-// NO FREE FONTS! Flicker when updating :-(
+#include "SignalProcessing.h"
+
+// NO FREE FONTS! Flickering when updating :-(
 // #include "Free_Fonts.h" // Include the header file attached to this sketch
 
 // Pointer for TFT for using both libs with the same code
@@ -13,9 +15,8 @@ M5Display &TFT = M5.Lcd;
 TFT_eSPI TFT = TFT_eSPI();
 #endif
 
-TFT_eSprite Graph = TFT_eSprite(&TFT); // canvas of graph, static & dynamic (grid and lines)
-TFT_eSprite xAxis = TFT_eSprite(&TFT); // canvas of scrolling x axis
-
+TFT_eSprite Graph = TFT_eSprite(&TFT);    // canvas of graph, static & dynamic (grid and lines)
+TFT_eSprite xAxis = TFT_eSprite(&TFT);    // canvas of scrolling x axis
 TFT_eSprite Terminal = TFT_eSprite(&TFT); // scrolling Terminal
 
 // global Variables
@@ -24,149 +25,45 @@ int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=ENV
 // internal Variables
 int16_t timerLCD = 0;
 
-static int16_t oy1 = 0; // static, local or global var to store the last y position in graph
-static int16_t oy2 = 0; // is need after each drawing of the historical buffer!
-static int16_t oy3 = 0;
-static int16_t oy4 = 0;
-static int16_t oy5 = 0;
-static int16_t ox1 = 0; // for each new drwaing of historical data, x axis starts at zero
-static int16_t ox2 = 0;
-static int16_t ox3 = 0;
-static int16_t ox4 = 0;
-static int16_t ox5 = 0;
-static int16_t LastXGridLinePos = 0; // for dynamic scrolling - to add new gridline at proper place
-
-// TODO TEST                                                                                .
-// TODO TEST                                                                                .
-char *getAllFreeHeap()
+void UI_TerminalPrint(MsgType mt, const char *msg)
+// Wrapper for Terminalprint
+//
 {
-  static char freeH[80]{}; // returns the formated free heap space
-  sprintf(freeH, "Size:%.2fkB Free:%.2fkB Min:%.2fkB Max:%.2fkB",
-          ESP.getHeapSize() / 1024.0,
-          ESP.getFreeHeap() / 1024.0,
-          ESP.getMinFreeHeap() / 1024.0,
-          ESP.getMaxAllocHeap() / 1024.0);
-  return freeH;
+  printTerminal(Terminal, mt, msg);
 }
 
-// TODO TEST                                                                                .
-// TODO TEST                                                                                .
-void printFreeHeap() // for debugging issues
+void UI_GraphPrint(GraphValues_t &GV)
+// Wrapper for printGraph
+//
 {
-  Serial.println(getAllFreeHeap());
+  printGraph(Graph, xAxis, GV);
 }
 
-void UI_SetupTerminal()
+void UI_EnvPrint(GraphValues_t &GV)
+// this screen is not integrated in the TFT cycle,
+// the update rate is handled outside of this function!
+//
 {
-  Terminal.setColorDepth(4);                              // max 16 graph lines with different colors
-  Terminal.createSprite(TERMINAL_WIDTH, TERMINAL_HEIGTH); // height = width at M5Stack (landscape mode!)
+  if (showScreen == ENV) // only show values if screen is active!
+  {
+    TFT.setCursor(PAGE_X, PAGE_Y);
+    TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+    TFT.setTextSize(2);
 
-  Terminal.fillSprite(TERMINAL_BGRND_COLOR);                                           // Note: Sprite is filled with black when created
-  Terminal.setScrollRect(0, 0, TERMINAL_WIDTH, TERMINAL_HEIGTH, TERMINAL_BGRND_COLOR); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
-}
-
-void UI_DrawTerminal()
-{
-  TerminalPrint(Terminal, WARNING, "SuperWarnung");
-
-  TerminalPrint(Terminal, ERROR, ".      SuperError");
-
-  TerminalPrint(Terminal, INFO, "__________________SuperINFO");
-
-  TerminalPrint(Terminal, NONE, "_____________________SuperNONE");
-
-  TerminalPrint(Terminal, NONE, "_VERRY LONG MESSAGE 34959573195719458"); // max length of a single line
+    // use global json ProbeData for visualisation
+    TFT.printf("T 1=%5.1f÷C  T 2=%5.1f÷C", GV.BMP280_Temperature, GV.BMP280_Temperature * 0.931);
+    TFT.setCursor(PAGE_X, PAGE_Y + 20);
+    TFT.printf("T 3=%5.1f÷C  T 4=%5.1f÷C", GV.SHT30_Temperature, GV.SHT30_Temperature * 0.231);
+    TFT.setCursor(PAGE_X, PAGE_Y + 40);
+    TFT.printf("CO =%5.1f÷C  Hum=%5.1f÷C", GV.eCO2, GV.Humidity);
+    TFT.setCursor(PAGE_X, PAGE_Y + 60);
+    TFT.printf("Hum=%5.1f÷C  VOC=%5.1f÷C", GV.Humidity, GV.TVOC);
+  }
 }
 
 // #################################################################################################################
 // #################################################################################################################
 // #################################################################################################################
-// #################################################################################################################
-// #################################################################################################################
-
-void printLegend()
-{
-  TFT.setTextSize(1);
-  TFT.setTextColor(TFT_BLACK);
-  TFT.fillRect(10, 60, 8, 8, LEGEND_1_COLOR);
-  TFT.setCursor(20, 60);
-  TFT.print(LEGEND_1);
-  TFT.fillRect(75, 60, 8, 8, LEGEND_2_COLOR);
-  TFT.setCursor(85, 60);
-  TFT.print(LEGEND_2);
-  TFT.fillRect(140, 60, 8, 8, LEGEND_3_COLOR);
-  TFT.setCursor(150, 60);
-  TFT.print(LEGEND_3);
-  TFT.fillRect(200, 60, 8, 8, LEGEND_4_COLOR);
-  TFT.setCursor(210, 60);
-  TFT.print(LEGEND_4);
-  TFT.fillRect(260, 60, 8, 8, LEGEND_5_COLOR);
-  TFT.setCursor(270, 60);
-  TFT.print(LEGEND_5);
-}
-
-void UI_SetupGraph()
-{
-  Graph.setColorDepth(4);                          // max 16 graph lines with different colors
-  Graph.createSprite(SPRITE_WIDTH, SPRITE_HEIGTH); // height = width at M5Stack (landscape mode!)
-
-  Graph.fillSprite(GRAPH_BGRND_COLOR);                                       // Note: Sprite is filled with black when created
-  Graph.setScrollRect(0, 0, SPRITE_WIDTH, SPRITE_HEIGTH, GRAPH_BGRND_COLOR); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
-
-  xAxis.setColorDepth(4); // could not save some kBytes, with depth(1) only black&white colors are available ?!
-  xAxis.createSprite(X_AXIS_WIDTH, X_AXIS_HEIGTH);
-
-  xAxis.fillSprite(CANVAS_BACKGROUND);                                       // Note: Sprite is filled with black when created
-  xAxis.setScrollRect(0, 0, X_AXIS_WIDTH, X_AXIS_HEIGTH, CANVAS_BACKGROUND); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
-
-  ytGraphDrawGridXaxis(Graph, xAxis, LastXGridLinePos); // draw the grid
-
-  // move starting point to the right side of the grap canvas
-  // so the diagonal lines from the left side are now gon,
-  // when no historicalvalues are drawed!
-  ox1 = SPRITE_WIDTH; // correction of the last point in graph after scrolling to the left
-  ox2 = SPRITE_WIDTH;
-  ox3 = SPRITE_WIDTH;
-  ox4 = SPRITE_WIDTH;
-  ox5 = SPRITE_WIDTH;
-}
-
-void UI_DrawGraph()
-{
-  ytGraphDrawYaxisFrame(TFT); // draw the y axis and the frame
-
-  printFreeHeap(); // DEBUG
-  printLegend();
-
-  int16_t scrollX = round(GRAPH_WIDTH / SAMPLE_COUNT); // scroll one sample to the left
-
-  ox1 -= scrollX; // correction of the last point in graph after scrolling to the left
-  ox2 -= scrollX;
-  ox3 -= scrollX;
-  ox4 -= scrollX;
-  ox5 -= scrollX;
-
-  Graph.scroll(-scrollX);
-  xAxis.scroll(-scrollX);
-
-  ytGraphDrawDynamicGrid(Graph, xAxis, ox4, LastXGridLinePos);
-
-  // add to the the end of the buffer the latest sensor reading
-  int16_t temp1 = lround(random(2, 5));
-  int16_t temp2 = lround(random(8, 12));
-  int16_t Co = lround(random(15, 20));
-  int16_t humidity = random(30, 35);
-  int16_t tvoc = random(40, 75);
-
-  ytGraph(Graph, SAMPLE_COUNT, temp1, LEGEND_1_COLOR, ox1, oy1);
-  ytGraph(Graph, SAMPLE_COUNT, temp2, LEGEND_2_COLOR, ox2, oy2);
-  ytGraph(Graph, SAMPLE_COUNT, Co, LEGEND_3_COLOR, ox3, oy3);
-  ytGraph(Graph, SAMPLE_COUNT, humidity, LEGEND_4_COLOR, ox4, oy4);
-  ytGraph(Graph, SAMPLE_COUNT, tvoc, LEGEND_5_COLOR, ox5, oy5);
-
-  xAxis.pushSprite(X_AXIS_LEFT_X, X_AXIS_UPPER_Y); // no Background color
-  Graph.pushSprite(SPRITE_LEFT_X, SPRITE_UPPER_Y); // left upper position
-}
 
 void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock)
 // ETH, WiFi, AP are static icons, the change only if the connection changes
@@ -328,6 +225,7 @@ void UI_drawMenue(int8_t activeItem)
 //  ------------------------------------------------------------------
 //  --------------------------- SCREENS ------------------------------
 //  ------------------------------------------------------------------
+
 void UI_screenHome()
 {
   TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
@@ -339,15 +237,15 @@ void UI_screenHome()
 
 void UI_screenENV()
 {
-  /* //INFO                                                                          .
+  /* 
+  //INFO                                                                          .
   If you use drawString(), drawNumber() and drawFloat() you can use setPadding()
   to automatically overwite old digits and text with background.
   See TFT_Padding_demo example.
-  https: // github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-488424620
-
+  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-488424620
+  
   TFT.print("÷C");                      // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
   TFT.drawString("`C", 50, 100, 2);     // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
-
   */
 
   TFT.setCursor(PAGE_X, PAGE_Y);
@@ -364,23 +262,6 @@ void UI_screenENV()
   TFT.printf("T 7=%5.1f÷C  T 8=%5.1f÷C", (millis() % 58) * 0.1, (millis() % 118) * 0.1);
 }
 
-// void UI_screenENVgraph()
-// {
-//   TFT.setCursor(PAGE_X, PAGE_Y);
-//   TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
-//   TFT.setTextSize(3);
-//   TFT.print("ENV_GRAPH ");
-//   TFT.println(millis());
-// }
-
-void UI_screenLOG()
-{
-  TFT.setCursor(PAGE_X, PAGE_Y);
-  TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
-  TFT.setTextSize(3);
-  TFT.print("LOG");
-}
-
 void UI_screenSysInfo()
 {
   TFT.setCursor(PAGE_X, PAGE_Y);
@@ -388,6 +269,7 @@ void UI_screenSysInfo()
   TFT.setTextSize(3);
   TFT.print("SYSINFO");
 }
+
 //  ------------------------------------------------------------------
 //  ------------------------------------------------------------------
 //  ------------------------------------------------------------------
@@ -479,17 +361,17 @@ void UI_showActiveScreen(uint8_t screen)
     UI_screenHome();
     break;
   case ENV:
-    UI_screenENV();
+    // is in different interval !
     break;
   case ENV_GRAPH:
   {
-    // ytGraphDrawYaxisFrame(TFT); // draw the y axis and the frame once
-    UI_DrawGraph();
+    // UI_showPageGraph(); // OK
+    showGraph(Graph, xAxis, TFT);
     break;
   }
   case LOG:
-    // UI_screenLOG();
-    UI_DrawTerminal();
+    showTerminal(Terminal);
+    // UI_showPageTerminal(); // OK
     break;
   case SYSINFO:
     UI_screenSysInfo();
@@ -498,6 +380,10 @@ void UI_showActiveScreen(uint8_t screen)
 }
 
 bool e, w, a, in, wa, er, cl; // DEBUG
+
+// #################################################################################################################
+// #################################################################################################################
+// #################################################################################################################
 
 void UI_doHandleTFT(int16_t refresh)
 {
@@ -571,10 +457,11 @@ void UI_setupTFT()
   TFT.setBrightness(LCD_BRIGHTNESS); // set default brightness
   TFT.fillScreen(SCREEN_BACKGROUND); // set default background color
 
-  UI_SetupGraph();
-  UI_DrawGraph();
+  setupGraph(Graph, xAxis);
+  showGraph(Graph, xAxis, TFT);
 
-  UI_SetupTerminal();
+  setupTerminal(Terminal);
+  showTerminal(Terminal);
 
   UI_doHandleTFT(0); // start with default screen
 }

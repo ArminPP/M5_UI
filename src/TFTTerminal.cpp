@@ -3,14 +3,14 @@
 
 #include "TFTTerminal.h"
 
-void TerminalPrint(TFT_eSprite &terminal, MsgType mt, const char *msg)
+void printTerminal(TFT_eSprite &Terminal, MsgType mt, const char *msg)
 {
   char msgT[4] = {'\0'};             // default
   uint16_t msgTypeColor = TFT_GREEN; // default
 
-  terminal.setTextColor(TERMINAL_TEXT_COLOR, TERMINAL_BGRND_COLOR);
-  terminal.setTextSize(1);
-  terminal.scroll(0, 10);
+  Terminal.setTextColor(TERMINAL_TEXT_COLOR, TERMINAL_BGRND_COLOR);
+  Terminal.setTextSize(1);
+  Terminal.scroll(0, 10);
 
   switch (mt)
   {
@@ -30,16 +30,29 @@ void TerminalPrint(TFT_eSprite &terminal, MsgType mt, const char *msg)
     msgTypeColor = TFT_RED;
     break;
   }
-  terminal.setCursor(5, 2);
-  terminal.printf("00:%02i", (millis() / 1000) % 100);
+  Terminal.setCursor(5, 2);
+  Terminal.printf("00:%02i", (millis() / 1000) % 100);
 
-  terminal.setTextColor(msgTypeColor, TERMINAL_BGRND_COLOR);
-  terminal.setCursor(40, 2);
-  terminal.printf("%s", msgT);
+  Terminal.setTextColor(msgTypeColor, TERMINAL_BGRND_COLOR);
+  Terminal.setCursor(40, 2);
+  Terminal.printf("%s", msgT);
 
-  terminal.setTextColor(TERMINAL_TEXT_COLOR, TERMINAL_BGRND_COLOR);
-  terminal.setCursor(65, 2);
-  terminal.printf("%s", msg);
+  Terminal.setTextColor(TERMINAL_TEXT_COLOR, TERMINAL_BGRND_COLOR);
+  Terminal.setCursor(65, 2);
+  Terminal.printf("%s", msg);
 
-  terminal.pushSprite(TERMINAL_LEFT_X, TERMINAL_UPPER_Y); // left upper position
+}
+
+void setupTerminal(TFT_eSprite &Terminal)
+{
+  Terminal.setColorDepth(4);                              // max 16 graph lines with different colors
+  Terminal.createSprite(TERMINAL_WIDTH, TERMINAL_HEIGTH); // height = width at M5Stack (landscape mode!)
+
+  Terminal.fillSprite(TERMINAL_BGRND_COLOR);                                           // Note: Sprite is filled with black when created
+  Terminal.setScrollRect(0, 0, TERMINAL_WIDTH, TERMINAL_HEIGTH, TERMINAL_BGRND_COLOR); // INFO: to choose a different sroll color than black/white it is mandatory to set a scrollRect !!!!
+}
+
+void showTerminal(TFT_eSprite &Terminal)
+{
+  Terminal.pushSprite(TERMINAL_LEFT_X, TERMINAL_UPPER_Y); // left upper position
 }

@@ -13,6 +13,7 @@ extern M5Display &TFT; //
 #include <TFT_eSPI.h>  // and the original library as well
 extern TFT_eSPI TFT;
 #endif
+// extern TFT_eSprite Terminal; // global terminal
 
 #include "ytGraph.h"
 #include "TFTTerminal.h"
@@ -129,5 +130,9 @@ enum Screens
 
 void UI_setupTFT();                   // 1st setup
 void UI_doHandleTFT(int16_t refresh); // must be in loop()!
+
+void UI_TerminalPrint(MsgType mt, const char *msg);
+void UI_GraphPrint(GraphValues_t &GV);
+void UI_EnvPrint(GraphValues_t &GV);
 
 #endif // DISPLAY_h
