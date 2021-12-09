@@ -46,8 +46,18 @@ void UI_EnvPrint(GraphValues_t &GV)
 {
   if (showScreen == ENV) // only show values if screen is active!
   {
-    TFT.setCursor(PAGE_X, PAGE_Y);
+    // INFO this doesn't work, there are some glitches if screens are swaped via btnA/C pressing...
+    // TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+    // TFT.setFreeFont(FF33);                                  // Select Free Serif 12 point font
+    // TFT.setTextPadding(50);
+    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y, GFXFF);
+    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y + 20, GFXFF);
+    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y + 40, GFXFF);
+    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y + 60, GFXFF);
+    // TFT.setTextFont(1); // return to standard font
+
     TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+    TFT.setCursor(PAGE_X, PAGE_Y);
     TFT.setTextSize(2);
 
     // use global json ProbeData for visualisation
@@ -166,7 +176,6 @@ void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3)
 {
   TFT.setTextSize(2);
   TFT.setTextColor(BUTTON_TEXT_COLOR, BUTTON_COLOR);
-
   // paint Button
   if (strlen(Btn1) > 0)
   {
@@ -235,32 +244,32 @@ void UI_screenHome()
   TFT.drawString("--> " + String(millis()), PAGE_X, PAGE_Y + 40);
 }
 
-void UI_screenENV()
-{
-  /* 
-  //INFO                                                                          .
-  If you use drawString(), drawNumber() and drawFloat() you can use setPadding()
-  to automatically overwite old digits and text with background.
-  See TFT_Padding_demo example.
-  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-488424620
-  
-  TFT.print("÷C");                      // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
-  TFT.drawString("`C", 50, 100, 2);     // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
-  */
+// void UI_screenENV()
+// {
+//   ///*
+//   //INFO                                                                          .
+//   If you use drawString(), drawNumber() and drawFloat() you can use setPadding()
+//   to automatically overwite old digits and text with background.
+//   See TFT_Padding_demo example.
+//   https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-488424620
 
-  TFT.setCursor(PAGE_X, PAGE_Y);
-  TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
-  TFT.setTextSize(2);
+//   TFT.print("÷C");                      // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
+//   TFT.drawString("`C", 50, 100, 2);     // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
+//   //*/
 
-  // use global json ProbeData for visualisation
-  TFT.printf("T 1=%5.1f÷C  T 2=%5.1f÷C", (millis() % 128) * 0.1, (millis() % 118) * 0.1);
-  TFT.setCursor(PAGE_X, PAGE_Y + 20);
-  TFT.printf("T 3=%5.1f÷C  T 4=%5.1f÷C", (millis() % 228) * 0.1, (millis() % 118) * 0.1);
-  TFT.setCursor(PAGE_X, PAGE_Y + 40);
-  TFT.printf("T 5=%5.1f÷C  T 6=%5.1f÷C", (millis() % 28) * 0.1, (millis() % 118) * 0.1);
-  TFT.setCursor(PAGE_X, PAGE_Y + 60);
-  TFT.printf("T 7=%5.1f÷C  T 8=%5.1f÷C", (millis() % 58) * 0.1, (millis() % 118) * 0.1);
-}
+//   TFT.setCursor(PAGE_X, PAGE_Y);
+//   TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+//   TFT.setTextSize(2);
+
+//   // use global json ProbeData for visualisation
+//   TFT.printf("T 1=%5.1f÷C  T 2=%5.1f÷C", (millis() % 128) * 0.1, (millis() % 118) * 0.1);
+//   TFT.setCursor(PAGE_X, PAGE_Y + 20);
+//   TFT.printf("T 3=%5.1f÷C  T 4=%5.1f÷C", (millis() % 228) * 0.1, (millis() % 118) * 0.1);
+//   TFT.setCursor(PAGE_X, PAGE_Y + 40);
+//   TFT.printf("T 5=%5.1f÷C  T 6=%5.1f÷C", (millis() % 28) * 0.1, (millis() % 118) * 0.1);
+//   TFT.setCursor(PAGE_X, PAGE_Y + 60);
+//   TFT.printf("T 7=%5.1f÷C  T 8=%5.1f÷C", (millis() % 58) * 0.1, (millis() % 118) * 0.1);
+// }
 
 void UI_screenSysInfo()
 {

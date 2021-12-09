@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 #define useM5STACK // choose between M5Stack and TFT_eSPI
-// #include <M5Stack.h>
 
+// generate a global variable "TFT" for M5.Lcd !!!!
 #ifdef useM5STACK      //
 #include <M5Stack.h>   // compiles with the M5Stack variant of TFT_eSPI () library
 extern M5Display &TFT; //
@@ -13,7 +13,6 @@ extern M5Display &TFT; //
 #include <TFT_eSPI.h>  // and the original library as well
 extern TFT_eSPI TFT;
 #endif
-// extern TFT_eSprite Terminal; // global terminal
 
 #include "ytGraph.h"
 #include "TFTTerminal.h"
