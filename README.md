@@ -6,7 +6,7 @@ M5_UI - a user interface for visualisation
 
 ### Overview
 - for M5Stack and displays using the TFT_eSPI() library
-- Demo of an LCD menu without using a library
+- demo of an LCD menu **without** using a library
 - it only shows data, no input at the moment
 - 5 screens, navigation with 2 buttons
 - automatic dimming of the backlight of the LCD
