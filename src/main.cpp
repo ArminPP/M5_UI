@@ -7,13 +7,14 @@ simple menu for (M5Stack) TFT screens
 - has a small memory footprint, all other libraries uses to much memory
 - only for visualisation purposes (no input possible)
 
-
-
 */
+
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
 #include <M5Stack.h>
 #include <Arduino.h>
+// #undef max // BUG  platformio error: macro "min" requires 2 arguments, but only 1 given
+// #undef min
 
 #include "Display.h"
 #include "SignalProcessing.h"
@@ -76,6 +77,7 @@ void setup()
 
   UI_setupTFT(); // INFO IMPORTANT MUST CALLED IN MAIN SETUP FIRST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
+
 uint32_t counter = 0;
 void loop()
 {
@@ -104,7 +106,7 @@ void loop()
     // if (random(110) > 20)
     //   TerminalPrint(Terminal, NONE, "_VERRY LONG MESSAGE 34959573195719458"); // max length of a single line
 
-    printFreeHeap();
+    // printFreeHeap(); //DEBUG
   }
 
   // feed Graph
