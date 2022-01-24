@@ -1,18 +1,24 @@
-INFO AND README WILL BE WRITTEN ASAP !!!!!!!!!!!!!!!!!
+M5_UI - a user interface for visualisation
 ======
 
+![M5_UI_250px](https://user-images.githubusercontent.com/65064947/150859046-b82e1d47-4f52-4c32-b9de-8aac97513174.gif)
 
-### M5_UI
-Demo of an LCD menu without using a library
 
-Five screens are available:
+### Overview
+- for M5Stack and displays using the TFT_eSPI() library
+- Demo of an LCD menu without using a library
+- it only shows data, no input at the moment
+- 5 screens, navigation with 2 buttons
+- automatic dimming of the backlight of the LCD
 
-1. main screen
+### Info
+![M5_UI](https://user-images.githubusercontent.com/65064947/150859352-abcf64fd-d60c-4bcf-90eb-fd7c3ae47e88.png)
 
-2. values screen
+### Five or more different screens:
 
-3. values graph
-
-4. debugging/info terminal
-
-5. systeminfo
+1. Main screen 
+2. Values screen
+3. Values graph (animated, with time line)
+4. Debugging/Info terminal (animated, colored)
+5. Systeminfo 
+...
