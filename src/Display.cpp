@@ -303,10 +303,9 @@ void UI_restartTimerLCD()
   timerLCD = 0;
   UI_drawHeader(HEADER_TITLE, 0, 0, 0, 0, 0); // repaint header, to clear embedded progress bar !!
   UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
-  xx
-  TFT.writecommand(ILI9341_DISPON); // NEW
-  delay(200);                           // NEW NEEDED ??????
-  TFT.setBrightness(LCD_BRIGHTNESS);    // set default brightness
+  TFT.writecommand(ILI9341_DISPON);  // NEW
+  delay(200);                        // NEW NEEDED ??????
+  TFT.setBrightness(LCD_BRIGHTNESS); // set default brightness
 }
 
 void UI_timeoutLCD()
@@ -357,8 +356,7 @@ void UI_timeoutLCD()
     if (timerLCD == LCD_TIMEOUT)
     {
       TFT.setBrightness(0);
-      xx
-          TFT.writecommand(ILI9341_DISPOFF); // NEW
+      TFT.writecommand(ILI9341_DISPOFF); // NEW
     }
   }
 }
