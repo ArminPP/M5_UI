@@ -16,10 +16,11 @@ simple menu for (M5Stack) TFT screens
 // #undef max // BUG  platformio error: macro "min" requires 2 arguments, but only 1 given
 // #undef min
 
+#include "Credentials.h"
+#include "Log.h"
 #include "Display.h"
 #include "SignalProcessing.h"
 
-// #include "TFTTerminal.h"
 // LCD Status
 bool LCD = true;
 
@@ -58,14 +59,10 @@ void printFreeHeap() // for debugging issues
 // TODO TEST                                                                                .
 // TODO TEST                                                                                .
 
-void setup()
+void WaitForUserInput()
 {
-  M5.begin();
-  M5.Power.begin();
-  Serial.begin(115200);
-
-  Serial.println("Press some serial key or M5 Button B to start program"); // DEBUG
-  M5.Lcd.println("Press some serial key or M5 Button B to start program");
+  // Serial.println("Press some serial key or M5 Button B to start program"); // DEBUG
+  //  M5.Lcd.println("Press some serial key or M5 Button B to start program");
   while (Serial.available() == 0)
   {
     M5.update();
@@ -74,17 +71,29 @@ void setup()
       break;
     }
   }
+}
+
+void setup()
+{
+  M5.begin();
+  M5.Power.begin();
+  Serial.begin(115200);
+
+  WaitForUserInput();
 
   UI_setupTFT(); // INFO IMPORTANT MUST CALLED IN MAIN SETUP FIRST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 uint32_t counter = 0;
+// bool e, w, a, in, wa, er, cl; // DEBUG
 void loop()
 {
-  UI_doHandleTFT(REFRESH_RATE);
+
+  UI_doHandleTFT(Credentials::TFT_REFRESH_RATE);
 
   // feed Terminal
   // #############
+
   char cstr[16];
   static unsigned long refreshTerminalPM = 0;
   unsigned long refreshTerminalCM = millis();
@@ -92,23 +101,34 @@ void loop()
   {
     refreshTerminalPM = refreshTerminalCM;
 
+    ico_AP = random(0, 2);   // DEBUG
+    ico_ERR = random(0, 2);  // DEBUG
+    ico_WIFI = random(0, 2); // DEBUG
+    ico_CLK = true;          // DEBUG
+
     itoa(counter++, cstr, 10);
-    UI_TerminalPrint(NONE, cstr);
 
-    if (random(100) > 50)
-      UI_TerminalPrint(WARNING, "SuperWarnung");
-    if (random(2090) > 50)
-      UI_TerminalPrint(ERROR, "       SuperError");
-    if (random(300) > 90)
-      UI_TerminalPrint(INFO, "__________________SuperINFO");
-    // if (random(700) > 150)
-    //   TerminalPrint(Terminal, NONE, "_____________________SuperNONE");
-    // if (random(110) > 20)
-    //   TerminalPrint(Terminal, NONE, "_VERRY LONG MESSAGE 34959573195719458"); // max length of a single line
+    // LOG(Credentials::LOG_DEBUG, _header_ "DEBUG"); // _header_ ==>  "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__, __func__,
+    LOG(Credentials::LOG_DEBUG, "DEBUG"); // _header_ ==>  "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__, __func__,
 
-    // printFreeHeap(); //DEBUG
+    // if (random(100) > 50)
+    LOG(Credentials::LOG_WARNING, "1234567890 SuperWarnung");
+    // LOG(Credentials::LOG_WARNING, "12345678901234567890123456789012345678901234567890 SuperWarnung");
+    // if (random(2090) > 50)
+
+    LOG(Credentials::LOG_ERROR, "%i %s", counter, "       SuperError");
+    // if (random(300) > 90)
+    // LOG(Credentials::LOG_INFO, "%i,%u 1234567890123456789012345678901234567890123456789012345678901234567890 SuperINFO", counter, millis());
+
+    //  LOG(Credentials::LOG_NONE, getAllFreeHeap());
   }
-
+  static unsigned long refreshInfoPM = 0;
+  unsigned long refreshInfoCM = millis();
+  if (refreshInfoCM - refreshInfoPM >= 10000)
+  {
+    refreshInfoPM = refreshInfoCM;
+    LOG(Credentials::LOG_INFO, "     %i    INFO", counter);
+  }
   // feed Graph
   // ##########
   static unsigned long refreshGraphPM = 0;

@@ -2,6 +2,7 @@
 #define DISPLAY_h
 
 #include <Arduino.h>
+#include "Credentials.h"
 
 #define useM5STACK // choose between M5Stack and TFT_eSPI
 
@@ -18,9 +19,6 @@ extern TFT_eSPI TFT;
 #include "TFTTerminal.h"
 
 // global definitions
-#define REFRESH_RATE 3000  // screen refreshrate in ms
-#define LCD_TIMEOUT 300    // 300 sec
-#define LCD_BRIGHTNESS 250 // 0 .. 255  -->  default value, after timeout it is zero!
 
 // https://www.barth-dev.de/online/rgb565-color-picker/
 #define TFT_GRAY 0x8410
@@ -110,6 +108,15 @@ extern TFT_eSPI TFT;
 // global Variables
 extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1=GRAPH 2=ENV_GRAPH
 
+// global Icons for header
+extern bool ico_ETH;
+extern bool ico_WIFI;
+extern bool ico_AP;
+extern bool ico_INFO;
+extern bool ico_WARN;
+extern bool ico_ERR;
+extern bool ico_CLK;
+
 const int noOfScreens = 5; // max 6-7 because of menue text length ...
 const char screenName[noOfScreens][15] = {
     {"  Home   "}, // max 9 chars if 5 menu items are used
@@ -123,14 +130,16 @@ enum Screens
     HOME,
     ENV,
     ENV_GRAPH,
-    LOG,
+    TERMINAL,
     SYSINFO
 };
 
 void UI_setupTFT();                   // 1st setup
 void UI_doHandleTFT(int16_t refresh); // must be in loop()!
 
-void UI_TerminalPrint(MsgType mt, const char *msg);
+void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock);
+
+void UI_TerminalPrint(const char *dt, Credentials::LogMsgType mt, const char *msg);
 void UI_GraphPrint(GraphValues_t &GV);
 void UI_EnvPrint(GraphValues_t &GV);
 

@@ -22,14 +22,22 @@ TFT_eSprite Terminal = TFT_eSprite(&TFT); // scrolling Terminal
 // global Variables
 int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=ENV 2=ENV_GRAPH
 
+bool ico_ETH = false;
+bool ico_WIFI = false;
+bool ico_AP = false;
+bool ico_INFO = false;
+bool ico_WARN = false;
+bool ico_ERR = false;
+bool ico_CLK = false;
+
 // internal Variables
 int16_t timerLCD = 0;
 
-void UI_TerminalPrint(MsgType mt, const char *msg)
+void UI_TerminalPrint(const char *dt, Credentials::LogMsgType mt, const char *msg)
 // Wrapper for Terminalprint
 //
 {
-  printTerminal(Terminal, mt, msg);
+  printTerminal(Terminal, dt, mt, msg);
 }
 
 void UI_GraphPrint(GraphValues_t &GV)
@@ -75,7 +83,9 @@ void UI_EnvPrint(GraphValues_t &GV)
 // #################################################################################################################
 // #################################################################################################################
 
-void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock)
+void UI_drawIcons()  //bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock
+// UGLY
+
 // ETH, WiFi, AP are static icons, the change only if the connection changes
 // 'Info, Warning and Error are dynamic icons, if they are triggered they will blink every second
 // Clock updates every second... (maybe this ist to fast?)
@@ -124,31 +134,42 @@ void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Er
       TFT.setCursor(DATE_TIME_X, DATE_TIME_Y + 12);
       TFT.printf("%02i-%02i-%04i", 02, 12, 2021);
     }
+
+    if (Info && TickTack)
+    {
+      TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_INFO_COLOR, ICON_BACKCOLOR);
+    }
+    else
+    {
+      TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+    }
+    if (Warning && TickTack)
+    {
+      TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WARNING_COLOR, ICON_BACKCOLOR);
+    }
+    else
+    {
+      TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+    }
+    if (Error && TickTack)
+    {
+      TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ERROR_COLOR, ICON_BACKCOLOR);
+    }
+    else
+    {
+      TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+    }
   }
 
-  if (Info && TickTack)
+  static unsigned long resetIconsPM = 0;
+  unsigned long resetIconsCM = millis();
+  if (resetIconsCM - resetIconsPM >= 5000)
   {
-    TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_INFO_COLOR, ICON_BACKCOLOR);
-  }
-  else
-  {
-    TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
-  }
-  if (Warning && TickTack)
-  {
-    TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WARNING_COLOR, ICON_BACKCOLOR);
-  }
-  else
-  {
-    TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
-  }
-  if (Error && TickTack)
-  {
-    TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ERROR_COLOR, ICON_BACKCOLOR);
-  }
-  else
-  {
-    TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+    resetIconsPM = resetIconsCM;
+
+    ico_INFO = false; // only blink 5 seconds if its gone
+    ico_WARN = false; // only blink 5 seconds if its gone
+    ico_ERR = false;  // only blink 5 seconds if its gone
   }
 }
 
@@ -302,10 +323,10 @@ void UI_restartTimerLCD()
 {
   timerLCD = 0;
   UI_drawHeader(HEADER_TITLE, 0, 0, 0, 0, 0); // repaint header, to clear embedded progress bar !!
-  UI_showTimeoutProgressLCD(0, LCD_TIMEOUT);
-  TFT.writecommand(ILI9341_DISPON);  // NEW
-  delay(200);                        // NEW NEEDED ??????
-  TFT.setBrightness(LCD_BRIGHTNESS); // set default brightness
+  UI_showTimeoutProgressLCD(0, Credentials::TFT_TIMEOUT);
+  TFT.writecommand(ILI9341_DISPON);               // NEW
+  delay(200);                                     // NEW NEEDED ??????
+  TFT.setBrightness(Credentials::TFT_BRIGHTNESS); // set default brightness
 }
 
 void UI_timeoutLCD()
@@ -319,41 +340,41 @@ void UI_timeoutLCD()
   {
     timeoutPM = timeoutCM;
 
-    if (timerLCD <= LCD_TIMEOUT) // because of overflow of int_8
+    if (timerLCD <= Credentials::TFT_TIMEOUT) // because of overflow of int_8
     {
       timerLCD += 1;
-      UI_showTimeoutProgressLCD(timerLCD, LCD_TIMEOUT);
+      UI_showTimeoutProgressLCD(timerLCD, Credentials::TFT_TIMEOUT);
     }
 
     void showWifiStrength(); // DEBUG                                                                                                   .
 
     // LCD brightnes fade out...
     // Brightness (0: Off - 255: Full)
-    if (timerLCD == LCD_TIMEOUT / 2) // at half timeout set brightness to 50%
+    if (timerLCD == Credentials::TFT_TIMEOUT / 2) // at half timeout set brightness to 50%
     {
-      TFT.setBrightness(LCD_BRIGHTNESS / 2);
+      TFT.setBrightness(Credentials::TFT_BRIGHTNESS / 2);
     }
-    if (timerLCD == LCD_TIMEOUT * 80 / 100) // at 80% start to fade out
+    if (timerLCD == Credentials::TFT_TIMEOUT * 80 / 100) // at 80% start to fade out
     {
       TFT.setBrightness(80);
     }
-    if (timerLCD == LCD_TIMEOUT * 85 / 100)
+    if (timerLCD == Credentials::TFT_TIMEOUT * 85 / 100)
     {
       TFT.setBrightness(70);
     }
-    if (timerLCD == LCD_TIMEOUT * 90 / 100)
+    if (timerLCD == Credentials::TFT_TIMEOUT * 90 / 100)
     {
       TFT.setBrightness(60);
     }
-    if (timerLCD == LCD_TIMEOUT * 95 / 100)
+    if (timerLCD == Credentials::TFT_TIMEOUT * 95 / 100)
     {
       TFT.setBrightness(30);
     }
-    if (timerLCD == LCD_TIMEOUT * 97 / 100)
+    if (timerLCD == Credentials::TFT_TIMEOUT * 97 / 100)
     {
       TFT.setBrightness(20);
     }
-    if (timerLCD == LCD_TIMEOUT)
+    if (timerLCD == Credentials::TFT_TIMEOUT)
     {
       TFT.setBrightness(0);
       TFT.writecommand(ILI9341_DISPOFF); // NEW
@@ -381,7 +402,7 @@ void UI_showActiveScreen(uint8_t screen)
     showGraph(Graph, xAxis, TFT);
     break;
   }
-  case LOG:
+  case TERMINAL:
     showTerminal(Terminal);
     // UI_showPageTerminal(); // OK
     break;
@@ -391,7 +412,7 @@ void UI_showActiveScreen(uint8_t screen)
   }
 }
 
-bool e, w, a, in, wa, er, cl; // DEBUG
+// bool e, w, a, in, wa, er, cl; // DEBUG
 
 // #################################################################################################################
 // #################################################################################################################
@@ -452,22 +473,22 @@ void UI_doHandleTFT(int16_t refresh)
     refreshLcdPM = refreshLcdCM;
     UI_showActiveScreen(showScreen);
 
-    e = random(0, 2);  // DEBUG
-    w = random(0, 2);  // DEBUG
-    a = random(0, 2);  // DEBUG
-    in = random(0, 2); // DEBUG
-    wa = random(0, 2); // DEBUG
-    er = random(0, 2); // DEBUG
-    cl = true;         // DEBUG
+    //   e = random(0, 2);  // DEBUG
+    //   w = random(0, 2);  // DEBUG
+    //   a = random(0, 2);  // DEBUG
+    //   in = random(0, 2); // DEBUG
+    //   wa = random(0, 2); // DEBUG
+    //   er = random(0, 2); // DEBUG
+    //   cl = true;         // DEBUG
   }
 
-  UI_drawIcons(e, w, a, in, wa, er, cl); // DEBUG
+  UI_drawIcons(ico_ETH, ico_WIFI, ico_AP, ico_INFO, ico_WARN, ico_ERR, ico_CLK); // DEBUG
 }
 
 void UI_setupTFT()
 {
-  TFT.setBrightness(LCD_BRIGHTNESS); // set default brightness
-  TFT.fillScreen(SCREEN_BACKGROUND); // set default background color
+  TFT.setBrightness(Credentials::TFT_BRIGHTNESS); // set default brightness
+  TFT.fillScreen(SCREEN_BACKGROUND);              // set default background color
 
   setupGraph(Graph, xAxis);
   showGraph(Graph, xAxis, TFT);

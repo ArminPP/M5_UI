@@ -5,7 +5,7 @@
 
 struct GraphValues_t
 {
-    char TimeStamp[6];          // hh:mm
+    char TimeStamp[6];        // hh:mm
     float BMP280_Temperature; // ENVII Sensor
     float SHT30_Temperature;  //
     float Humidity;           //
