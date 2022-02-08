@@ -13,12 +13,12 @@ namespace Credentials // https://stackoverflow.com/questions/2483978/best-way-to
   bool LOG_TO_TFT = true;
   bool LOG_TO_FILE = false;
 
-  bool CREDENTIALS_LOG_DEBUG = true;
-  bool CREDENTIALS_LOG_ERROR = true;
-  bool CREDENTIALS_LOG_WARNING = true;
-  bool CREDENTIALS_LOG_INFO = true;
+  bool ENABLE_LOG_DEBUG = true;
+  bool ENABLE_LOG_ERROR = true;
+  bool ENABLE_LOG_WARNING = true;
+  bool ENABLE_LOG_INFO = true;
 
-  const char *SERIAL_TERMINAL_RED = "\e[1;31m";
+  const char *SERIAL_TERMINAL_RED = "\e[1;31m"; // have not figured out now, which terminal is able to show colored chars...
   const char *SERIAL_TERMINAL_LL_GREEN = "\e[32m";
   const char *SERIAL_TERMINAL_LL_YELLOW = "\e[1;33m";
   const char *SERIAL_TERMINAL_LL_NORM = "\e[0m";
@@ -32,7 +32,7 @@ namespace Credentials // https://stackoverflow.com/questions/2483978/best-way-to
   uint16_t TERMINAL_DEBUG_COLOR = TFT_WHITE;
 
   uint16_t TFT_REFRESH_RATE = 3000; // screen refreshrate in ms
-  uint16_t TFT_TIMEOUT = 300;       // 300 sec
+  uint16_t TFT_TIMEOUT = 300;       // 300 sec - timeout for backlit
   uint8_t TFT_BRIGHTNESS = 250;     // 0 .. 255  -->  default value, after timeout it is zero!
 
   enum LogMsgType

@@ -10,7 +10,7 @@
 //
 // Found at https://stackoverflow.com/a/54916870
 
-#define _header_ "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__,__func__,  // pretty header e.g. for debugging issues
+#define _header_ "File:%s Line:%d Function:%s() %s",__FILE__,__LINE__,__FUNCTION__, //__func__,  // pretty header e.g. for debugging issues
 
 #include <Arduino.h>
 #include "Credentials.h"

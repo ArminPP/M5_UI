@@ -15,12 +15,14 @@ M5Display &TFT = M5.Lcd;
 TFT_eSPI TFT = TFT_eSPI();
 #endif
 
+#define msgTimer 3 // dynamic messages (info, warning and error are only shown for 3 s in the status bar)
+
 TFT_eSprite Graph = TFT_eSprite(&TFT);    // canvas of graph, static & dynamic (grid and lines)
 TFT_eSprite xAxis = TFT_eSprite(&TFT);    // canvas of scrolling x axis
 TFT_eSprite Terminal = TFT_eSprite(&TFT); // scrolling Terminal
 
 // global Variables
-int8_t showScreen = 0; // Define the variable: default display mode 0=HOME 1=ENV 2=ENV_GRAPH
+int8_t showScreen = 0; // Define the variable: default display mode 0=SCR_HOME 1=SCR_ENV 2=SCR_ENV_GRAPH
 
 bool ico_ETH = false;
 bool ico_WIFI = false;
@@ -35,14 +37,12 @@ int16_t timerLCD = 0;
 
 void UI_TerminalPrint(const char *dt, Credentials::LogMsgType mt, const char *msg)
 // Wrapper for Terminalprint
-//
 {
   printTerminal(Terminal, dt, mt, msg);
 }
 
 void UI_GraphPrint(GraphValues_t &GV)
 // Wrapper for printGraph
-//
 {
   printGraph(Graph, xAxis, GV);
 }
@@ -52,20 +52,18 @@ void UI_EnvPrint(GraphValues_t &GV)
 // the update rate is handled outside of this function!
 //
 {
-  if (showScreen == ENV) // only show values if screen is active!
+  if (showScreen == SCR_ENV) // only show values if screen is active!
   {
     // INFO this doesn't work, there are some glitches if screens are swaped via btnA/C pressing...
-    // TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
     // TFT.setFreeFont(FF33);                                  // Select Free Serif 12 point font
     // TFT.setTextPadding(50);
     // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y, GFXFF);
-    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y + 20, GFXFF);
-    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y + 40, GFXFF);
-    // TFT.drawFloat(GV.BMP280_Temperature, 2, PAGE_X, PAGE_Y + 60, GFXFF);
+    // (..)
     // TFT.setTextFont(1); // return to standard font
 
-    TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+    TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND);
     TFT.setCursor(PAGE_X, PAGE_Y);
+    TFT.setTextFont(1); // return to standard font
     TFT.setTextSize(2);
 
     // use global json ProbeData for visualisation
@@ -83,15 +81,14 @@ void UI_EnvPrint(GraphValues_t &GV)
 // #################################################################################################################
 // #################################################################################################################
 
-void UI_drawIcons()  //bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock
-// UGLY
-
+void UI_drawIcons()
 // ETH, WiFi, AP are static icons, the change only if the connection changes
-// 'Info, Warning and Error are dynamic icons, if they are triggered they will blink every second
-// Clock updates every second... (maybe this ist to fast?)
+// 'Info, Warning and Error are dynamic icons, if they are triggered they will be shown
+// for 3 seconds, then they will be inactive due to the next event.
 //
 {
-  if (ETH)
+  // static icons
+  if (ico_ETH)
   {
     TFT.drawXBitmap(ICON_ETH_X, ICON_Y, ETH_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ETH_COLOR, ICON_BACKCOLOR);
   }
@@ -99,7 +96,7 @@ void UI_drawIcons()  //bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bo
   {
     TFT.drawXBitmap(ICON_ETH_X, ICON_Y, ETH_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
   }
-  if (WiFi)
+  if (ico_WIFI)
   {
     TFT.drawXBitmap(ICON_WIFI_X, ICON_Y, WiFi_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WIFI_COLOR, ICON_BACKCOLOR);
   }
@@ -107,7 +104,7 @@ void UI_drawIcons()  //bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bo
   {
     TFT.drawXBitmap(ICON_WIFI_X, ICON_Y, WiFi_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
   }
-  if (AP)
+  if (ico_AP)
   {
     TFT.drawXBitmap(ICON_AP_X, ICON_Y, AP_icon, ICON_WIDTH, ICON_HEIGHT, ICON_AP_COLOR, ICON_BACKCOLOR);
   }
@@ -116,64 +113,123 @@ void UI_drawIcons()  //bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bo
     TFT.drawXBitmap(ICON_AP_X, ICON_Y, AP_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
   }
 
-  // update dynamic icons every 1000 ms
+  // dynamic icons
+  static uint8_t timer_err = 0; // helper for the oneshot timer
+  static uint8_t timer_info = 0;
+  static uint8_t timer_warn = 0;
+  if (ico_INFO)
+  {
+    TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_INFO_COLOR, ICON_BACKCOLOR);
+    if (timer_info == 0) // only if oneshot timer is inactive and event active...
+    {                    //
+      timer_info = 1;    // ...start the oneshot timer!
+    }
+  }
+  else
+  {
+    TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+  if (ico_WARN)
+  {
+    TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WARNING_COLOR, ICON_BACKCOLOR);
+    if (timer_warn == 0)
+    {
+      timer_warn = 1;
+    }
+  }
+  else
+  {
+    TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+  if (ico_ERR)
+  {
+    TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ERROR_COLOR, ICON_BACKCOLOR);
+    if (timer_err == 0)
+    {
+      timer_err = 1;
+    }
+  }
+  else
+  {
+    TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
+  }
+
+  // oneshot timer
+  // on error event show the icon only for 3 seconds (msgTimer)
+  static unsigned long BlinkErrPM = 0;
+  unsigned long BlinkErrCM = millis();
+  if (timer_err > 0)                     // if oneshot timer is started...
+    if (BlinkErrCM - BlinkErrPM >= 1000) // ...every second
+    {                                    //
+      if (timer_err > msgTimer)          // ...check if time is over
+      {                                  //
+        timer_err = 0;                   // if so - stop timer...
+        ico_ERR = false;                 // ...make icon inactive
+      }                                  //
+      else                               // otherwise...
+      {                                  //
+        timer_err++;                     // ...start next round of timer
+      }                                  //
+      BlinkErrPM = BlinkErrCM;           //
+    }
+  // oneshot timer
+  // on warn event show the icon only for 3 seconds (msgTimer)
+  static unsigned long BlinkWarnPM = 0;
+  unsigned long BlinkWarnCM = millis();
+  if (timer_warn > 0)
+    if (BlinkWarnCM - BlinkWarnPM >= 1000)
+    {
+      if (timer_warn > msgTimer)
+      {
+        timer_warn = 0;
+        ico_WARN = false;
+      }
+      else
+      {
+        timer_warn++;
+      }
+      BlinkWarnPM = BlinkWarnCM;
+    }
+  // oneshot timer
+  // on info event show the icon only for 3 seconds (msgTimer)
+  static unsigned long BlinkInfoPM = 0;
+  unsigned long BlinkInfoCM = millis();
+  if (timer_info > 0)
+    if (BlinkInfoCM - BlinkInfoPM >= 1000)
+    {
+      if (timer_info > msgTimer)
+      {
+        ico_INFO = false;
+        timer_info = 0;
+      }
+      else
+      {
+        timer_info++;
+      }
+      BlinkInfoPM = BlinkInfoCM;
+    }
+
+  // update the clock every 1000 ms
   static unsigned long refreshIconsPM = 0;
-  static bool TickTack = true;
   unsigned long refreshIconsCM = millis();
   if (refreshIconsCM - refreshIconsPM >= 1000)
   {
-    refreshIconsPM = refreshIconsCM;
-    TickTack = !TickTack;
-
-    if (Clock)
+    if (ico_CLK)
     {
-      TFT.setTextColor(DATE_TIME_COLOR, ICON_BACKCOLOR); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+      TFT.setTextColor(DATE_TIME_COLOR, ICON_BACKCOLOR);
+      TFT.setTextFont(1); // return to standard font
       TFT.setTextSize(1);
       TFT.setCursor(DATE_TIME_X, DATE_TIME_Y);
       TFT.printf("%02i:%02i:%02i", 9, 30, 05);
       TFT.setCursor(DATE_TIME_X, DATE_TIME_Y + 12);
       TFT.printf("%02i-%02i-%04i", 02, 12, 2021);
     }
-
-    if (Info && TickTack)
-    {
-      TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_INFO_COLOR, ICON_BACKCOLOR);
-    }
-    else
-    {
-      TFT.drawXBitmap(ICON_INFO_X, ICON_Y, Info_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
-    }
-    if (Warning && TickTack)
-    {
-      TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_WARNING_COLOR, ICON_BACKCOLOR);
-    }
-    else
-    {
-      TFT.drawXBitmap(ICON_WARNING_X, ICON_Y, Warning_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
-    }
-    if (Error && TickTack)
-    {
-      TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_ERROR_COLOR, ICON_BACKCOLOR);
-    }
-    else
-    {
-      TFT.drawXBitmap(ICON_ERROR_X, ICON_Y, Error_icon, ICON_WIDTH, ICON_HEIGHT, ICON_BACKCOLOR_INACTIVE, ICON_BACKCOLOR);
-    }
-  }
-
-  static unsigned long resetIconsPM = 0;
-  unsigned long resetIconsCM = millis();
-  if (resetIconsCM - resetIconsPM >= 5000)
-  {
-    resetIconsPM = resetIconsCM;
-
-    ico_INFO = false; // only blink 5 seconds if its gone
-    ico_WARN = false; // only blink 5 seconds if its gone
-    ico_ERR = false;  // only blink 5 seconds if its gone
+    refreshIconsPM = refreshIconsCM;
   }
 }
 
 void UI_progressBar(int x, int y, int w, int h, uint8_t val100pcnt, uint32_t color)
+// progressbar for showing time for timeout of backlit display
 {
   TFT.fillRect(x, y, w * (((float)val100pcnt) / 100.0), h, color);
 }
@@ -184,24 +240,28 @@ void UI_deleteCanvas()
   TFT.drawRoundRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT, 6, CANVAS_FRAME_COLOR);
 }
 
-void UI_drawHeader(const char *Title, bool WiFi, bool LAN, bool AP, bool CLOCK, bool BATTERY)
+void UI_drawHeader()
 {
+  TFT.setTextFont(1); // return to standard font
   TFT.fillRect(0, 0, SCREEN_WIDTH, HEADER_HEIGHT, HEADER_BACKGROUND);
 
-  TFT.setTextColor(HEADER_TEXT_COLOR, HEADER_BACKGROUND);
-  TFT.setTextSize(2);
-  TFT.drawString(Title, HEADER_TEXT_X, HEADER_TEXT_Y);
+  // TFT.setTextColor(HEADER_TEXT_COLOR, HEADER_BACKGROUND);
+  // TFT.setTextSize(2);
+  // TFT.drawString(HEADER_TITLE, HEADER_TEXT_X, HEADER_TEXT_Y);
+
+ TFT.drawXBitmap(0, 0, Logo_USS, LOGO_WIDTH, LOGO_HEIGHT, LOGO_COLOR, HEADER_BACKGROUND);
 }
 
 void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3)
 {
+  TFT.setTextFont(1); // return to standard font
   TFT.setTextSize(2);
   TFT.setTextColor(BUTTON_TEXT_COLOR, BUTTON_COLOR);
   // paint Button
   if (strlen(Btn1) > 0)
   {
-    TFT.fillRoundRect(BUTTON_1_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);
-    TFT.drawString(Btn1, BUTTON_1_TEXT_X, BUTTON_TEXT_Y);
+    TFT.fillRoundRect(BUTTON_1_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 6, BUTTON_COLOR);  
+    TFT.drawString(Btn1, BUTTON_1_TEXT_X, BUTTON_TEXT_Y);                               
   }
   else
   {
@@ -232,6 +292,7 @@ void UI_drawFooter(const char *Btn1, const char *Btn2, const char *Btn3)
 
 void UI_drawMenue(int8_t activeItem)
 {
+  TFT.setTextFont(1); // return to standard font
   TFT.setTextSize(1);
   int16_t space = (TFT_HEIGHT / noOfScreens); //- 5
   for (int i = 0; i < noOfScreens; ++i)
@@ -259,45 +320,27 @@ void UI_drawMenue(int8_t activeItem)
 void UI_screenHome()
 {
   TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+  TFT.setTextFont(1);                                     // return to standard font
   TFT.setTextSize(2);
-  TFT.drawString("Welcome to USS!", PAGE_X, PAGE_Y);
-  TFT.drawString("the UniversalSensorSystem", PAGE_X, PAGE_Y + 20);
-  TFT.drawString("--> " + String(millis()), PAGE_X, PAGE_Y + 40);
+  TFT.drawString("Welcome to USS!", PAGE_X, PAGE_Y + 20);
+  TFT.drawString("the", PAGE_X, PAGE_Y + 40);
+  TFT.drawString("Universal Sensor System", PAGE_X, PAGE_Y + 60);
+
+  // // INFO this doesn't work, there are some glitches if screens are swaped via btnA/C pressing...
+  // TFT.setFreeFont(FF33); // Select Free Serif 12 point font
+  // TFT.setTextPadding(50);
+  // TFT.drawString("Welcome to USS!", PAGE_X, PAGE_Y, GFXFF);
+  // TFT.drawString("the UniversalSensorSystem", PAGE_X, PAGE_Y + 40, GFXFF);
+  // (..)
 }
-
-// void UI_screenENV()
-// {
-//   ///*
-//   //INFO                                                                          .
-//   If you use drawString(), drawNumber() and drawFloat() you can use setPadding()
-//   to automatically overwite old digits and text with background.
-//   See TFT_Padding_demo example.
-//   https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-488424620
-
-//   TFT.print("÷C");                      // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
-//   TFT.drawString("`C", 50, 100, 2);     // prints °C  https://github.com/Bodmer/TFT_eSPI/issues/350#issuecomment-860571653
-//   //*/
-
-//   TFT.setCursor(PAGE_X, PAGE_Y);
-//   TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
-//   TFT.setTextSize(2);
-
-//   // use global json ProbeData for visualisation
-//   TFT.printf("T 1=%5.1f÷C  T 2=%5.1f÷C", (millis() % 128) * 0.1, (millis() % 118) * 0.1);
-//   TFT.setCursor(PAGE_X, PAGE_Y + 20);
-//   TFT.printf("T 3=%5.1f÷C  T 4=%5.1f÷C", (millis() % 228) * 0.1, (millis() % 118) * 0.1);
-//   TFT.setCursor(PAGE_X, PAGE_Y + 40);
-//   TFT.printf("T 5=%5.1f÷C  T 6=%5.1f÷C", (millis() % 28) * 0.1, (millis() % 118) * 0.1);
-//   TFT.setCursor(PAGE_X, PAGE_Y + 60);
-//   TFT.printf("T 7=%5.1f÷C  T 8=%5.1f÷C", (millis() % 58) * 0.1, (millis() % 118) * 0.1);
-// }
 
 void UI_screenSysInfo()
 {
   TFT.setCursor(PAGE_X, PAGE_Y);
-  TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND); // Bei sich ändernden Texten Hintergrund mitangeben!!!!
+  TFT.setTextColor(CANVAS_TEXT_COLOR, CANVAS_BACKGROUND);
+  TFT.setTextFont(1); // return to standard font
   TFT.setTextSize(3);
-  TFT.print("SYSINFO");
+  TFT.print("SCR_SYSINFO");
 }
 
 //  ------------------------------------------------------------------
@@ -319,12 +362,18 @@ void UI_showTimeoutProgressLCD(int16_t progress, int16_t max)
   UI_progressBar(0, HEADER_HEIGHT - 4, SCREEN_WIDTH, 4, i, TFT_MAROON);
 }
 
+void UI_deleteTimeoutProgressLCD()
+// after restart of timeout, remove progress bar
+{
+  TFT.fillRect(0, HEADER_HEIGHT - 4, SCREEN_WIDTH, 4, HEADER_BACKGROUND);
+}
+
 void UI_restartTimerLCD()
 {
   timerLCD = 0;
-  UI_drawHeader(HEADER_TITLE, 0, 0, 0, 0, 0); // repaint header, to clear embedded progress bar !!
+  UI_deleteTimeoutProgressLCD();
   UI_showTimeoutProgressLCD(0, Credentials::TFT_TIMEOUT);
-  TFT.writecommand(ILI9341_DISPON);               // NEW
+  TFT.writecommand(ILI9341_DISPON);               // display on, saves power
   delay(200);                                     // NEW NEEDED ??????
   TFT.setBrightness(Credentials::TFT_BRIGHTNESS); // set default brightness
 }
@@ -346,7 +395,7 @@ void UI_timeoutLCD()
       UI_showTimeoutProgressLCD(timerLCD, Credentials::TFT_TIMEOUT);
     }
 
-    void showWifiStrength(); // DEBUG                                                                                                   .
+    // void showWifiStrength(); // DEBUG                                                                                                   .
 
     // LCD brightnes fade out...
     // Brightness (0: Off - 255: Full)
@@ -376,8 +425,8 @@ void UI_timeoutLCD()
     }
     if (timerLCD == Credentials::TFT_TIMEOUT)
     {
-      TFT.setBrightness(0);
-      TFT.writecommand(ILI9341_DISPOFF); // NEW
+      TFT.setBrightness(0);              // TFT is 'off' backlight is off
+      TFT.writecommand(ILI9341_DISPOFF); // should save power
     }
   }
 }
@@ -390,29 +439,25 @@ void UI_showActiveScreen(uint8_t screen)
   //
   switch (screen)
   {
-  case HOME:
+  case SCR_HOME:
     UI_screenHome();
     break;
-  case ENV:
+  case SCR_ENV:
     // is in different interval !
     break;
-  case ENV_GRAPH:
+  case SCR_ENV_GRAPH:
   {
-    // UI_showPageGraph(); // OK
     showGraph(Graph, xAxis, TFT);
     break;
   }
-  case TERMINAL:
+  case SCR_MESSAGES:
     showTerminal(Terminal);
-    // UI_showPageTerminal(); // OK
     break;
-  case SYSINFO:
+  case SCR_SYSINFO:
     UI_screenSysInfo();
     break;
   }
 }
-
-// bool e, w, a, in, wa, er, cl; // DEBUG
 
 // #################################################################################################################
 // #################################################################################################################
@@ -421,6 +466,8 @@ void UI_showActiveScreen(uint8_t screen)
 void UI_doHandleTFT(int16_t refresh)
 {
   M5.update();
+  TFT.setTextFont(1);                        // return to standard font
+  TFT.setTextSize(2);                        // NEW
   if (M5.BtnA.wasReleased() || refresh == 0) // refresh = 0 means 1st start with default screen
   {
     showScreen--;
@@ -472,17 +519,9 @@ void UI_doHandleTFT(int16_t refresh)
   {
     refreshLcdPM = refreshLcdCM;
     UI_showActiveScreen(showScreen);
-
-    //   e = random(0, 2);  // DEBUG
-    //   w = random(0, 2);  // DEBUG
-    //   a = random(0, 2);  // DEBUG
-    //   in = random(0, 2); // DEBUG
-    //   wa = random(0, 2); // DEBUG
-    //   er = random(0, 2); // DEBUG
-    //   cl = true;         // DEBUG
   }
 
-  UI_drawIcons(ico_ETH, ico_WIFI, ico_AP, ico_INFO, ico_WARN, ico_ERR, ico_CLK); // DEBUG
+  UI_drawIcons();
 }
 
 void UI_setupTFT()
@@ -495,6 +534,6 @@ void UI_setupTFT()
 
   setupTerminal(Terminal);
   showTerminal(Terminal);
-
+  UI_drawHeader();   // paint header once
   UI_doHandleTFT(0); // start with default screen
 }

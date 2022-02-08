@@ -11,10 +11,10 @@ namespace Credentials // https://stackoverflow.com/questions/2483978/best-way-to
     extern bool LOG_TO_TFT;
     extern bool LOG_TO_FILE;
 
-    extern bool CREDENTIALS_LOG_DEBUG;
-    extern bool CREDENTIALS_LOG_ERROR;
-    extern bool CREDENTIALS_LOG_WARNING;
-    extern bool CREDENTIALS_LOG_INFO;
+    extern bool ENABLE_LOG_DEBUG;
+    extern bool ENABLE_LOG_ERROR;
+    extern bool ENABLE_LOG_WARNING;
+    extern bool ENABLE_LOG_INFO;
 
     extern const char *SERIAL_TERMINAL_RED[];
     extern const char *SERIAL_TERMINAL_LL_GREEN[];

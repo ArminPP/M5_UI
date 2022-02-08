@@ -60,30 +60,30 @@ int LOG(Credentials::LogMsgType mt, const char *format, ...) // max length of me
 
   if (Credentials::LOG_TO_SERIAL)
   {
-    if (!((!Credentials::CREDENTIALS_LOG_INFO) && (mt == Credentials::LOG_INFO)) ||      // filter: only if msg and credentials are equal then print msg!
-        ((!Credentials::CREDENTIALS_LOG_WARNING) && (mt == Credentials::LOG_WARNING)) || // LOG_NONE also will be printed!
-        ((!Credentials::CREDENTIALS_LOG_ERROR) && (mt == Credentials::LOG_ERROR)) ||
-        ((!Credentials::CREDENTIALS_LOG_DEBUG) && (mt == Credentials::LOG_DEBUG)))
+    if (!((!Credentials::ENABLE_LOG_INFO) && (mt == Credentials::LOG_INFO)) ||      // filter: only if msg and credentials are equal then print msg!
+        ((!Credentials::ENABLE_LOG_WARNING) && (mt == Credentials::LOG_WARNING)) || // LOG_NONE also will be printed!
+        ((!Credentials::ENABLE_LOG_ERROR) && (mt == Credentials::LOG_ERROR)) ||
+        ((!Credentials::ENABLE_LOG_DEBUG) && (mt == Credentials::LOG_DEBUG)))
     {
       Serial.printf("%s [%s] %s\n", "04-02-2022|10:30", Credentials::LOG_MSG[mt], formatted_str); // timestamp, msg type, message
     }
   }
   if (Credentials::LOG_TO_TFT)
   {
-    if (!((!Credentials::CREDENTIALS_LOG_INFO) && (mt == Credentials::LOG_INFO)) ||      // filter: only if msg and credentials are equal then print msg!
-        ((!Credentials::CREDENTIALS_LOG_WARNING) && (mt == Credentials::LOG_WARNING)) || // LOG_NONE also will be printed!
-        ((!Credentials::CREDENTIALS_LOG_ERROR) && (mt == Credentials::LOG_ERROR)) ||
-        ((!Credentials::CREDENTIALS_LOG_DEBUG) && (mt == Credentials::LOG_DEBUG)))
+    if (!((!Credentials::ENABLE_LOG_INFO) && (mt == Credentials::LOG_INFO)) ||      // filter: only if msg and credentials are equal then print msg!
+        ((!Credentials::ENABLE_LOG_WARNING) && (mt == Credentials::LOG_WARNING)) || // LOG_NONE also will be printed!
+        ((!Credentials::ENABLE_LOG_ERROR) && (mt == Credentials::LOG_ERROR)) ||
+        ((!Credentials::ENABLE_LOG_DEBUG) && (mt == Credentials::LOG_DEBUG)))
     {
       UI_TerminalPrint("10:30", mt, formatted_str); // only time, msg type, message
     }
   }
   if (Credentials::LOG_TO_FILE)
   {
-    if (!((!Credentials::CREDENTIALS_LOG_INFO) && (mt == Credentials::LOG_INFO)) ||      // filter: only if msg and credentials are equal then print msg!
-        ((!Credentials::CREDENTIALS_LOG_WARNING) && (mt == Credentials::LOG_WARNING)) || // LOG_NONE also will be printed!
-        ((!Credentials::CREDENTIALS_LOG_ERROR) && (mt == Credentials::LOG_ERROR)) ||
-        ((!Credentials::CREDENTIALS_LOG_DEBUG) && (mt == Credentials::LOG_DEBUG)))
+    if (!((!Credentials::ENABLE_LOG_INFO) && (mt == Credentials::LOG_INFO)) ||      // filter: only if msg and credentials are equal then print msg!
+        ((!Credentials::ENABLE_LOG_WARNING) && (mt == Credentials::LOG_WARNING)) || // LOG_NONE also will be printed!
+        ((!Credentials::ENABLE_LOG_ERROR) && (mt == Credentials::LOG_ERROR)) ||
+        ((!Credentials::ENABLE_LOG_DEBUG) && (mt == Credentials::LOG_DEBUG)))
     {
     }
   }

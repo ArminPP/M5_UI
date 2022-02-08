@@ -12,12 +12,9 @@ Armin (c) 2022
 #include <Arduino.h>
 #include "Credentials.h"
 
-// https://www.barth-dev.de/online/rgb565-color-picker/
+void printTerminal(TFT_eSprite &Terminal, const char *dt, Credentials::LogMsgType mt, const char *msg); // some kind of 'Buffer' which collects all messages in a sprite
 
-
-void printTerminal(TFT_eSprite &Terminal,  const char *dt, Credentials::LogMsgType mt, const char *msg);
-
-void setupTerminal(TFT_eSprite &Terminal);
-void showTerminal(TFT_eSprite &Terminal);
+void setupTerminal(TFT_eSprite &Terminal); // setup
+void showTerminal(TFT_eSprite &Terminal);  // shows/updates the terminal
 
 #endif // TFTTERMINAL_h

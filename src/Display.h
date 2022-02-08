@@ -40,6 +40,12 @@ extern TFT_eSPI TFT;
 #define HEADER_TEXT_Y 5
 #define HEADER_TEXT_COLOR TFT_BLACK
 
+// Logo definitions
+#define LOGO_Y PAGE_Y
+#define LOGO_X PAGE_X +10
+#define LOGO_COLOR CANVAS_BACKGROUND
+#define LOGO_BACKCOLOR HEADER_BACKGROUND
+
 // Icon definitions
 #define ICON_Y 5
 #define ICON_ETH_X 130
@@ -61,7 +67,7 @@ extern TFT_eSPI TFT;
 
 #define DATE_TIME_X ICON_WARNING_X + 50
 #define DATE_TIME_Y 3
-#define DATE_TIME_COLOR TFT_BLACK
+#define DATE_TIME_COLOR CANVAS_BACKGROUND
 
 // menu definitions
 #define MENU_HEIGHT 25
@@ -106,7 +112,7 @@ extern TFT_eSPI TFT;
 #define PAGE_Y CANVAS_Y + 6
 
 // global Variables
-extern int8_t showScreen; // active shown screen - default display mode 0=HOME 1=GRAPH 2=ENV_GRAPH
+extern int8_t showScreen; // active shown screen - default display mode 0=SCR_HOME 1=GRAPH 2=SCR_ENV_GRAPH
 
 // global Icons for header
 extern bool ico_ETH;
@@ -127,19 +133,19 @@ const char screenName[noOfScreens][15] = {
 
 enum Screens
 {
-    HOME,
-    ENV,
-    ENV_GRAPH,
-    TERMINAL,
-    SYSINFO
+    SCR_HOME,
+    SCR_ENV,
+    SCR_ENV_GRAPH,
+    SCR_MESSAGES,
+    SCR_SYSINFO
 };
 
 void UI_setupTFT();                   // 1st setup
-void UI_doHandleTFT(int16_t refresh); // must be in loop()!
+void UI_doHandleTFT(int16_t refresh); // must be in loop() for the button query, the update of the screen is made with refresh !  
 
-void UI_drawIcons(bool ETH, bool WiFi, bool AP, bool Info, bool Warning, bool Error, bool Clock);
+void UI_drawIcons(); // this function drwas the icons without an delay!
 
-void UI_TerminalPrint(const char *dt, Credentials::LogMsgType mt, const char *msg);
+void UI_TerminalPrint(const char *dt, Credentials::LogMsgType mt, const char *msg); // writes directly the messages to the terminal 'buffer' aka sprite
 void UI_GraphPrint(GraphValues_t &GV);
 void UI_EnvPrint(GraphValues_t &GV);
 

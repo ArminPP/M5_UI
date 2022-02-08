@@ -108,8 +108,8 @@ void loop()
 
     itoa(counter++, cstr, 10);
 
-    // LOG(Credentials::LOG_DEBUG, _header_ "DEBUG"); // _header_ ==>  "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__, __func__,
-    LOG(Credentials::LOG_DEBUG, "DEBUG"); // _header_ ==>  "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__, __func__,
+    LOG(Credentials::LOG_DEBUG, _header_ "DEBUG"); // _header_ ==>  "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__, __func__,
+    // LOG(Credentials::LOG_DEBUG, "DEBUG"); // _header_ ==>  "(File:%s Line:%d Function:%s) %s", __FILE__, __LINE__, __func__,
 
     // if (random(100) > 50)
     LOG(Credentials::LOG_WARNING, "1234567890 SuperWarnung");
@@ -120,7 +120,7 @@ void loop()
     // if (random(300) > 90)
     // LOG(Credentials::LOG_INFO, "%i,%u 1234567890123456789012345678901234567890123456789012345678901234567890 SuperINFO", counter, millis());
 
-    //  LOG(Credentials::LOG_NONE, getAllFreeHeap());
+    LOG(Credentials::LOG_NONE, getAllFreeHeap());
   }
   static unsigned long refreshInfoPM = 0;
   unsigned long refreshInfoCM = millis();
@@ -150,7 +150,7 @@ void loop()
     UI_GraphPrint(GV);
   }
 
-  // feed ENV
+  // feed SCR_ENV
   // ##########
   static unsigned long refreshEnvPM = 0;
   unsigned long refreshEnvCM = millis();

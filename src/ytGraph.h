@@ -30,7 +30,7 @@
 // --------------------------------------------------------------------------------------
 
 #define LEGEND_1 "Temp1|÷C" // check max. chars per line!
-#define LEGEND_2 "Temp2|÷C"
+#define LEGEND_2 "Temp2|÷C" // ÷C  writes °C on TFT-screen !
 #define LEGEND_3 "Hum|%   "
 #define LEGEND_4 "Co|ppm  "
 #define LEGEND_5 "TVOC|pp "
