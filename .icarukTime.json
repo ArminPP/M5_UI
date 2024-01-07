@@ -1,7 +1,7 @@
 {
-    "idleHeartbeats": 248660,
-    "navigatingHeartbeats": 117785,
-    "totalCodingHeartbeats": 352350,
+    "idleHeartbeats": 252010,
+    "navigatingHeartbeats": 119019,
+    "totalCodingHeartbeats": 356388,
     "languageHeartbeats": {
         "drawio": 31,
         "scminput": 4482,
@@ -11,14 +11,14 @@
         "json": 5127,
         "Log": 1688,
         "todo": 573,
-        "plaintext": 462,
+        "plaintext": 1406,
         "javascript": 85068,
         "css": 1021,
         "c": 624,
         "ignore": 1145,
         "log": 98,
         "markdown": 509,
-        "python": 21888,
+        "python": 24982,
         "perl": 749,
         "search-result": 397
     },
@@ -89,7 +89,7 @@
         "M5Atom_KX132_FFT/src/ESP32FFT/fft.c": 298,
         "M5Atom_KX132_FFT/src/FFT.h": 67,
         "M5Atom_KX132_FFT/src/ESP32FFT/fft.h": 91,
-        "Untitled-1": 1290,
+        "Untitled-1": 2295,
         "M5Atom_KX132_FFT/src/fix_fft_int16_t/sinewave_8192.h": 225,
         "M5Atom_KX132_FFT/src/fix_fft_int16_t/sinewaveLUT.h": 815,
         "M5Atom_KX132_FFT/src/fix_fft_int16_t/fix_fft.cpp": 1095,
@@ -259,6 +259,15 @@
         "M5Stick CPlus MPU TEST/platformio.ini": 204,
         "ui_FFT_aWOT/src/ButtonsOnBottom.js": 46,
         "M5Atom_KX132_FFT/src/main (sampling 20 kHz).cpp": 523,
-        "git\\scm4\\input": 60
+        "git\\scm4\\input": 60,
+        "Python/QS_Selector_V3.py": 130,
+        "Python/QS_Selector_V3a.py": 148,
+        "Python/QS_Selector_V3d.py": 46,
+        "Python/QS_Selector_V3e.py": 47,
+        "Python/QS_Selector_V3f.py": 179,
+        "Python/QS_Selector_V3l.py": 45,
+        "Python/QS_Selector_V3m.py": 2273,
+        "Python/QS_Selector_V3n.py": 165,
+        "Python/QS_Selector_V3_FINAL.py": 0
     }
 }
